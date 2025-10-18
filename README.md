@@ -141,6 +141,9 @@ New API提供了丰富的功能，详细特性请参考[特性说明](https://do
 - `NOTIFICATION_LIMIT_DURATION_MINUTE`：邮件等通知限制持续时间，默认 `10`分钟
 - `NOTIFY_LIMIT_COUNT`：用户通知在指定持续时间内的最大数量，默认 `2`
 - `ERROR_LOG_ENABLED=true`: 是否记录并显示错误日志，默认`false`
+- `FEATURE_PLAN_ASSIGNMENT_CACHE`: 预留开关，用于开启计划分配的 Redis 缓存，加速后续账单查询（默认关闭）
+- `FEATURE_USAGE_COUNTER_CACHE`: 预留开关，用于开启使用量计数的缓存层（默认关闭）
+- `FEATURE_REQUEST_AGGREGATE_CACHE`: 预留开关，用于开启排行榜聚合结果缓存（默认关闭）
 
 ## 部署
 
