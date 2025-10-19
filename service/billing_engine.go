@@ -67,19 +67,37 @@ func (be *BillingEngine) PrepareCharge(ctx context.Context, subjectKey string, r
     if err != nil {
         return nil, err
     }
+    // Determine desired mode: subject override -> global default
+    desiredMode := strings.ToLower(common.BillingDefaultMode)
+    if relayInfo != nil && relayInfo.BillingMode != "" {
+        desiredMode = strings.ToLower(relayInfo.BillingMode)
+    }
+    // If globally configured to auto fallback, upgrade plan mode to fallback
+    if desiredMode == common.BillingModePlan && common.BillingAutoFallbackEnabled {
+        desiredMode = common.BillingModeFallback
+    }
     pc := &PreparedCharge{
         SubjectType: subjectType,
         SubjectId:   subjectId,
-        Mode:        common.BillingDefaultMode,
+        Mode:        desiredMode,
     }
     if len(assignments) == 0 {
+        // No plan to use; force balance
         pc.Mode = common.BillingModeBalance
         return pc, nil
     }
     // Pick the most recent assignment
     assignment := assignments[0]
     pc.Assignment = assignment
-    pc.Mode = assignment.BillingMode
+    // If explicit override chooses non-plan charging, keep it; otherwise inherit assignment mode
+    if desiredMode == common.BillingModePlan || desiredMode == common.BillingModeFallback {
+        pc.Mode = desiredMode
+    } else {
+        pc.Mode = assignment.BillingMode
+        if pc.Mode == common.BillingModePlan && common.BillingAutoFallbackEnabled {
+            pc.Mode = common.BillingModeFallback
+        }
+    }
     // Load plan
     var plan model.Plan
     if err := be.DB.First(&plan, "id = ?", assignment.PlanId).Error; err != nil {

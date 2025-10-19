@@ -1,19 +1,45 @@
-.idea
-.vscode
-upload
+# Go build
+bin/
+build/
 *.exe
-*.db
-build
-*.db-journal
-logs
-web/dist
-.env
-one-api
-new-api
-.DS_Store
-tiktoken_cache
-.eslintcache
-.gocache
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+coverage/
 
-electron/node_modules
-electron/dist
+# Go modules
+vendor/
+
+# IDE/editor
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Node / Vite web assets
+node_modules/
+web/node_modules/
+web/dist/
+web/.cache/
+
+# Env
+.env
+.env.local
+
+# Cache
+.cache/
+.tmp/
+
+# Misc
+*.bak
+*.orig

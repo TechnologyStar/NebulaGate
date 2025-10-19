@@ -106,6 +106,7 @@ func InitEnv() {
     // Feature-gated toggles for upcoming modules (can be overridden by DB options)
     BillingFeatureEnabled = GetEnvOrDefaultBool("BILLING_ENABLED", BillingFeatureEnabled)
     BillingDefaultMode = GetEnvOrDefaultString("BILLING_DEFAULT_MODE", BillingDefaultMode)
+    BillingAutoFallbackEnabled = GetEnvOrDefaultBool("BILLING_AUTO_FALLBACK", BillingAutoFallbackEnabled)
 
     GovernanceFeatureEnabled = GetEnvOrDefaultBool("GOVERNANCE_ENABLED", GovernanceFeatureEnabled)
     GovernanceAbuseRPMThreshold = GetEnvOrDefault("GOVERNANCE_ABUSE_RPM_THRESHOLD", GovernanceAbuseRPMThreshold)

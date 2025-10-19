@@ -468,6 +468,7 @@ func handleConfigUpdate(key, value string) bool {
         if bc, ok := cfg.(*config.BillingConfig); ok {
             common.BillingFeatureEnabled = bc.Enabled
             common.BillingDefaultMode = bc.DefaultMode
+            common.BillingAutoFallbackEnabled = bc.AutoFallback
         }
     case "governance":
         if gc, ok := cfg.(*config.GovernanceConfig); ok {
