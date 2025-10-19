@@ -103,6 +103,18 @@ func InitEnv() {
     UsageCounterCacheEnabled = GetEnvOrDefaultBool("FEATURE_USAGE_COUNTER_CACHE", false)
     RequestAggregateCacheEnabled = GetEnvOrDefaultBool("FEATURE_REQUEST_AGGREGATE_CACHE", false)
 
+    // Feature-gated toggles for upcoming modules (can be overridden by DB options)
+    BillingFeatureEnabled = GetEnvOrDefaultBool("BILLING_ENABLED", BillingFeatureEnabled)
+    BillingDefaultMode = GetEnvOrDefaultString("BILLING_DEFAULT_MODE", BillingDefaultMode)
+
+    GovernanceFeatureEnabled = GetEnvOrDefaultBool("GOVERNANCE_ENABLED", GovernanceFeatureEnabled)
+    GovernanceAbuseRPMThreshold = GetEnvOrDefault("GOVERNANCE_ABUSE_RPM_THRESHOLD", GovernanceAbuseRPMThreshold)
+    GovernanceRerouteModelAlias = GetEnvOrDefaultString("GOVERNANCE_REROUTE_MODEL_ALIAS", GovernanceRerouteModelAlias)
+
+    PublicLogsFeatureEnabled = GetEnvOrDefaultBool("PUBLIC_LOGS_ENABLED", PublicLogsFeatureEnabled)
+    PublicLogsVisibility = GetEnvOrDefaultString("PUBLIC_LOGS_VISIBILITY", PublicLogsVisibility)
+    PublicLogsRetentionDays = GetEnvOrDefault("PUBLIC_LOGS_RETENTION_DAYS", PublicLogsRetentionDays)
+
     initConstantEnv()
 }
 

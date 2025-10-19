@@ -2062,6 +2062,11 @@
     "默认区域，如: us-central1": "默认区域，如: us-central1",
     "默认折叠侧边栏": "默认折叠侧边栏",
     "默认测试模型": "默认测试模型",
-    "默认补全倍率": "默认补全倍率"
+    "默认补全倍率": "默认补全倍率",
+    "billing.plan": "计费计划",
+    "billing.enabled": "启用计费",
+    "billing.defaultMode": "默认计费模式",
+    "governance.abuseThreshold": "滥用 RPM 阈值",
+    "publicLogs.retentionDays": "公开日志保留天数"
   }
 }
