@@ -2,12 +2,17 @@ package scheduler
 
 import (
     "context"
+    "encoding/hex"
     "errors"
+    "fmt"
     "strconv"
+    "strings"
     "time"
 
     "github.com/QuantumNous/new-api/common"
+    "github.com/QuantumNous/new-api/dto"
     "github.com/QuantumNous/new-api/model"
+    "github.com/QuantumNous/new-api/service"
     cfg "github.com/QuantumNous/new-api/setting/config"
 
     "gorm.io/gorm"
@@ -53,7 +58,15 @@ func startTicker(ctx context.Context, interval time.Duration, fn func()) {
 func RunPlanCycleResetOnce(ctx context.Context) error {
     now := time.Now().UTC()
 
-    return model.DB.Transaction(func(tx *gorm.DB) error {
+    type pendingNotify struct {
+        userId  int
+        email   string
+        setting dto.UserSetting
+        data    dto.Notify
+    }
+    var notifications []pendingNotify
+
+    err := model.DB.Transaction(func(tx *gorm.DB) error {
         var expired []model.UsageCounter
         if err := tx.Where("cycle_end <= ?", now).Find(&expired).Error; err != nil {
             return err
@@ -84,20 +97,63 @@ func RunPlanCycleResetOnce(ctx context.Context) error {
             }
             start, end := getCycleWindow(p.CycleType, now)
 
-            // If a counter for the new window already exists, delete the expired record
+            // If a counter for the new window already exists, delete the expired record and continue
             var existing model.UsageCounter
-            err := tx.Where("plan_assignment_id = ? AND metric = ? AND cycle_start = ?", c.PlanAssignmentId, c.Metric, start).First(&existing).Error
-            if err == nil {
+            qerr := tx.Where("plan_assignment_id = ? AND metric = ? AND cycle_start = ?", c.PlanAssignmentId, c.Metric, start).First(&existing).Error
+            if qerr == nil {
                 if err := tx.Delete(&model.UsageCounter{}, c.Id).Error; err != nil {
                     return err
                 }
                 continue
             }
-            if !errors.Is(err, gorm.ErrRecordNotFound) {
-                return err
+            if !errors.Is(qerr, gorm.ErrRecordNotFound) {
+                return qerr
             }
 
-            // Update in place to keep a single row per assignment+metric
+            // Compute carry-over according to plan settings
+            leftover := p.QuotaAmount - c.ConsumedAmount
+            if leftover < 0 {
+                leftover = 0
+            }
+            carried := int64(0)
+            eventType := "reset"
+            if p.AllowCarryOver {
+                carried = leftover
+                if p.CarryLimitPercent > 0 {
+                    capAmt := (p.QuotaAmount * int64(p.CarryLimitPercent)) / 100
+                    if carried > capAmt {
+                        carried = capAmt
+                    }
+                }
+                if carried > 0 {
+                    eventType = "carry_over"
+                }
+                policy := common.RolloverPolicyCarryAll
+                if p.CarryLimitPercent > 0 {
+                    policy = common.RolloverPolicyCap
+                }
+                // Set rollover on assignment for the upcoming window
+                if err := tx.Model(&model.PlanAssignment{}).Where("id = ?", a.Id).Updates(map[string]any{
+                    "rollover_policy":      policy,
+                    "rollover_amount":      carried,
+                    "rollover_expires_at":  end,
+                    "updated_at":           gorm.Expr("CURRENT_TIMESTAMP"),
+                }).Error; err != nil {
+                    return err
+                }
+            } else {
+                // No carry-over: clear rollover fields
+                if err := tx.Model(&model.PlanAssignment{}).Where("id = ?", a.Id).Updates(map[string]any{
+                    "rollover_policy":     common.RolloverPolicyNone,
+                    "rollover_amount":     0,
+                    "rollover_expires_at": gorm.Expr("NULL"),
+                    "updated_at":          gorm.Expr("CURRENT_TIMESTAMP"),
+                }).Error; err != nil {
+                    return err
+                }
+            }
+
+            // Move counter to the new cycle window and reset consumed
             if err := tx.Model(&model.UsageCounter{}).Where("id = ?", c.Id).Updates(map[string]any{
                 "consumed_amount": 0,
                 "cycle_start":     start,
@@ -107,11 +163,74 @@ func RunPlanCycleResetOnce(ctx context.Context) error {
                 return err
             }
 
-            // Optional audit log
+            // Record an audit RequestLog entry for reset/carry_over (idempotent)
+            subjHash := anonymizeSubject(a.SubjectType, a.SubjectId)
+            metaPayload := map[string]any{
+                "event":          eventType,
+                "carried_amount": carried,
+                "leftover":       leftover,
+                "prev_consumed":  c.ConsumedAmount,
+                "plan_quota":     p.QuotaAmount,
+                "engine":         "scheduler",
+            }
+            b, _ := common.Marshal(metaPayload)
+            reqId := fmt.Sprintf("%s:%d:%s:%d", eventType, a.Id, c.Metric, start.Unix())
+            rl := &model.RequestLog{
+                RequestId:             reqId,
+                OccurredAt:            now,
+                ModelAlias:            "",
+                UpstreamProvider:      "",
+                SubjectType:           a.SubjectType,
+                AnonymizedSubjectHash: subjHash,
+                PlanId:                &a.PlanId,
+                PlanAssignmentId:      &a.Id,
+                UsageMetric:           c.Metric,
+                PromptTokens:          0,
+                CompletionTokens:      0,
+                TotalTokens:           0,
+                LatencyMs:             0,
+                Metadata:              model.JSONValue(b),
+            }
+            if err := tx.Create(rl).Error; err != nil {
+                if !isUniqueConstraintError(err) {
+                    return err
+                }
+            }
+
             common.SysLog("plan cycle reset: assignment=" + strconv.Itoa(a.Id) + " metric=" + c.Metric)
+
+            // Queue an optional user notification if enabled
+            if bc := cfg.GetBillingConfig(); bc != nil && bc.Enabled && bc.NotifyOnReset && a.SubjectType == common.AssignmentSubjectTypeUser {
+                var user model.User
+                if err := tx.First(&user, "id = ?", a.SubjectId).Error; err == nil {
+                    title := "Plan cycle reset"
+                    if p.CycleType == common.PlanCycleDaily {
+                        title = "Daily quota reset"
+                    }
+                    content := "Your plan cycle has been reset."
+                    if eventType == "carry_over" {
+                        content = fmt.Sprintf("Your plan has reset. Carried over %d to the new cycle. New allowance base: %d.", carried, p.QuotaAmount)
+                    }
+                    notifications = append(notifications, pendingNotify{
+                        userId:  user.Id,
+                        email:   user.Email,
+                        setting: user.GetSetting(),
+                        data:    dto.NewNotify("plan_reset", title, content, nil),
+                    })
+                }
+            }
         }
         return nil
     })
+    if err != nil {
+        return err
+    }
+
+    // Send notifications outside the transaction
+    for _, n := range notifications {
+        _ = service.NotifyUser(n.userId, n.email, n.setting, n.data)
+    }
+    return nil
 }
 
 // RunTTLCleanupOnce performs a TTL cleanup sweep for governance flags, public logs and vouchers.
@@ -175,4 +294,16 @@ func getCycleWindow(cycleType string, now time.Time) (time.Time, time.Time) {
     }
 }
 
-// helper removed; use strconv.Itoa directly
+func anonymizeSubject(subjectType string, subjectId int) string {
+    plain := []byte(subjectType + ":" + fmt.Sprintf("%d", subjectId))
+    sum := common.HmacSha256Raw(plain, []byte(common.SessionSecret))
+    return hex.EncodeToString(sum)
+}
+
+func isUniqueConstraintError(err error) bool {
+    if err == nil {
+        return false
+    }
+    msg := strings.ToLower(err.Error())
+    return strings.Contains(msg, "unique") || strings.Contains(msg, "duplicate") || strings.Contains(msg, "constraint failed")
+}

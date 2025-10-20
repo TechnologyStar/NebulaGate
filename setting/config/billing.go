@@ -14,6 +14,8 @@ type BillingConfig struct {
     // ResetTimezone is a TZ database name like "America/Los_Angeles"; if set and valid,
     // it is used together with ResetHourUTC to schedule resets in that zone.
     ResetTimezone string `json:"reset_timezone"`
+    // NotifyOnReset enables user notifications when plan/daily cycles reset.
+    NotifyOnReset bool   `json:"notify_on_reset"`
 }
 
 var billingConfig = BillingConfig{
@@ -24,6 +26,7 @@ var billingConfig = BillingConfig{
     AutoFallback:  common.GetEnvOrDefaultBool("BILLING_AUTO_FALLBACK", false),
     ResetHourUTC:  common.GetEnvOrDefault("BILLING_RESET_HOUR_UTC", -1),
     ResetTimezone: common.GetEnvOrDefaultString("BILLING_RESET_TIMEZONE", ""),
+    NotifyOnReset: common.GetEnvOrDefaultBool("BILLING_NOTIFY_ON_RESET", false),
 }
 
 func init() {
