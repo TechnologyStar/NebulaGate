@@ -8,6 +8,9 @@ Jobs
 - Plan cycle reset
   - For each UsageCounter whose cycle_end <= now, reset consumed_amount to 0 and move the anchors (cycle_start/cycle_end) to the current cycle window.
   - The cycle window is determined from the associated Plan.CycleType (daily or monthly).
+  - Carry-over: when Plan.AllowCarryOver=true, the remaining allowance from the previous cycle is carried into the new cycle. If Plan.CarryLimitPercent > 0, the carried amount is capped at that percentage of Plan.QuotaAmount and stored in PlanAssignment.RolloverAmount for the duration of the new window.
+  - No carry-over: when Plan.AllowCarryOver=false, rollover fields are cleared.
+  - The reset job records an idempotent RequestLog entry per assignment+metric+cycle with metadata event="reset" or "carry_over".
   - Idempotent: if the reset was missed, the next run will advance to the correct window.
 - TTL cleanup
   - RequestFlag: deletes records where ttl_at is in the past, or if ttl_at is NULL, where created_at is older than governance.flag_ttl_hours (default 24h).
@@ -19,6 +22,7 @@ Configuration
 - billing.default_mode, billing.auto_fallback: existing billing controls.
 - billing.reset_hour_utc (optional): integer [0-23] to prefer resets at a specific hour in UTC. Scheduler uses hourly sweeps and idempotency; exact hour is primarily informational.
 - billing.reset_timezone (optional): TZ name like America/Los_Angeles; can be used for future scheduling rules.
+- billing.notify_on_reset (optional): when true, send user notifications on plan/daily quota reset.
 - governance.enabled: enable governance features and RequestFlag cleanup.
 - governance.flag_ttl_hours: default TTL hours for RequestFlag without explicit ttl_at (default: 24).
 - public_logs.enabled and public_logs.retention_days: enable public logs and set deletion retention in days (default: 3).
@@ -28,6 +32,7 @@ Enable
   - BILLING_ENABLED=true
   - BILLING_DEFAULT_MODE=balance
   - BILLING_AUTO_FALLBACK=false
+  - BILLING_NOTIFY_ON_RESET=false
   - GOVERNANCE_ENABLED=true
   - GOVERNANCE_FLAG_TTL_HOURS=24
   - PUBLIC_LOGS_ENABLED=true
@@ -41,9 +46,10 @@ Bootstrapping
 
 Verification
 - Unit tests: go test ./service/scheduler -run TestPlanResetJob
+- Unit tests: go test ./service/scheduler -run TestCarryOverRules to verify carry-over math and zeroing.
 - Manual sqlite simulation:
   1. Create a PlanAssignment and a UsageCounter whose cycle_end is in the past.
   2. Call scheduler.RunPlanCycleResetOnce(context.Background()).
-  3. Inspect the UsageCounter row: consumed_amount should be 0, cycle_start advanced to current.
+  3. Inspect the UsageCounter row: consumed_amount should be 0, cycle_start advanced to current; if AllowCarryOver=true, PlanAssignment.RolloverAmount holds the carried allowance until cycle_end.
 - TTL example:
   - With governance.flag_ttl_hours=24, insert a RequestFlag with created_at older than 24h or ttl_at in the past and run scheduler.RunTTLCleanupOnce(...). The record should be deleted.

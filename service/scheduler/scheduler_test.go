@@ -83,3 +83,51 @@ func TestTTLCleanupFlags(t *testing.T) {
         t.Fatalf("expected old flag to be deleted, still %d left", cnt)
     }
 }
+
+func TestCarryOverRules(t *testing.T) {
+    db := setupSchedulerTestDB(t)
+    now := time.Now().UTC()
+
+    // Case 1: no carry-over -> rollover cleared
+    p1 := &model.Plan{Code: "m-no-carry", Name: "MonthlyNoCarry", CycleType: common.PlanCycleMonthly, QuotaMetric: common.PlanQuotaMetricRequests, QuotaAmount: 100, IsActive: true, AllowCarryOver: false}
+    if err := db.Create(p1).Error; err != nil { t.Fatalf("create plan1: %v", err) }
+    a1 := &model.PlanAssignment{SubjectType: common.AssignmentSubjectTypeUser, SubjectId: 2, PlanId: p1.Id, ActivatedAt: now.AddDate(0, -2, 0)}
+    if err := db.Create(a1).Error; err != nil { t.Fatalf("create assignment1: %v", err) }
+
+    // previous monthly window
+    prevMonthStart := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC).AddDate(0, -1, 0)
+    prevMonthEnd := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
+    c1 := &model.UsageCounter{PlanAssignmentId: a1.Id, Metric: p1.QuotaMetric, CycleStart: prevMonthStart, CycleEnd: prevMonthEnd, ConsumedAmount: 30}
+    if err := db.Create(c1).Error; err != nil { t.Fatalf("create counter1: %v", err) }
+
+    if err := RunPlanCycleResetOnce(nil); err != nil { t.Fatalf("reset once case1: %v", err) }
+
+    var a1After model.PlanAssignment
+    if err := db.First(&a1After, a1.Id).Error; err != nil { t.Fatalf("load a1: %v", err) }
+    if a1After.RolloverAmount != 0 || a1After.RolloverPolicy != common.RolloverPolicyNone || a1After.RolloverExpiresAt != nil {
+        t.Fatalf("expected rollover cleared, got amount=%d policy=%s expires=%v", a1After.RolloverAmount, a1After.RolloverPolicy, a1After.RolloverExpiresAt)
+    }
+
+    // Case 2: carry-over with cap 50%
+    p2 := &model.Plan{Code: "m-carry-cap", Name: "MonthlyCarryCap", CycleType: common.PlanCycleMonthly, QuotaMetric: common.PlanQuotaMetricRequests, QuotaAmount: 100, IsActive: true, AllowCarryOver: true, CarryLimitPercent: 50}
+    if err := db.Create(p2).Error; err != nil { t.Fatalf("create plan2: %v", err) }
+    a2 := &model.PlanAssignment{SubjectType: common.AssignmentSubjectTypeUser, SubjectId: 3, PlanId: p2.Id, ActivatedAt: now.AddDate(0, -2, 0)}
+    if err := db.Create(a2).Error; err != nil { t.Fatalf("create assignment2: %v", err) }
+
+    c2 := &model.UsageCounter{PlanAssignmentId: a2.Id, Metric: p2.QuotaMetric, CycleStart: prevMonthStart, CycleEnd: prevMonthEnd, ConsumedAmount: 30}
+    if err := db.Create(c2).Error; err != nil { t.Fatalf("create counter2: %v", err) }
+
+    if err := RunPlanCycleResetOnce(nil); err != nil { t.Fatalf("reset once case2: %v", err) }
+
+    var a2After model.PlanAssignment
+    if err := db.First(&a2After, a2.Id).Error; err != nil { t.Fatalf("load a2: %v", err) }
+    if a2After.RolloverAmount != 50 {
+        t.Fatalf("expected rollover amount 50, got %d", a2After.RolloverAmount)
+    }
+    if a2After.RolloverPolicy != common.RolloverPolicyCap {
+        t.Fatalf("expected rollover policy cap, got %s", a2After.RolloverPolicy)
+    }
+    if a2After.RolloverExpiresAt == nil {
+        t.Fatalf("expected rollover expires to be set")
+    }
+}
