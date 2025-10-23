@@ -6,8 +6,12 @@ const (
     ContextKeyTokenCountMeta ContextKey = "token_count_meta"
     ContextKeyPromptTokens   ContextKey = "prompt_tokens"
 
-    ContextKeyOriginalModel    ContextKey = "original_model"
-    ContextKeyRequestStartTime ContextKey = "request_start_time"
+    ContextKeyOriginalModel          ContextKey = "original_model"
+    ContextKeyRequestStartTime       ContextKey = "request_start_time"
+    ContextKeyRequestedModel         ContextKey = "requested_model"
+    ContextKeyGovernanceUpstreamModel ContextKey = "governance_upstream_model"
+    ContextKeyGovernanceMetadata     ContextKey = "governance_metadata"
+    ContextKeySkipLeaderboard        ContextKey = "skip_leaderboard"
 
     /* token related keys */
     ContextKeyTokenUnlimited         ContextKey = "token_unlimited_quota"
