@@ -29,6 +29,7 @@ const (
     BillingModeFallback = "fallback"
     // Additional placeholder mode for balance-based billing
     BillingModeBalance = "balance"
+    BillingModeAuto    = "auto"
 )
 
 const (
