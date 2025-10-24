@@ -27,8 +27,9 @@ type Token struct {
     AllowIps           *string        `json:"allow_ips" gorm:"default:''"`
     UsedQuota          int            `json:"used_quota" gorm:"default:0"` // used quota
     Group              string         `json:"group" gorm:"default:''"`
-    // BillingMode is a per-token override for billing strategy (balance | plan | prepaid | voucher | fallback)
+    // BillingMode is a per-token override for billing strategy (balance | plan | auto)
     BillingMode        string         `json:"billing_mode" gorm:"size:16;default:'balance'"`
+    PlanAssignmentId   *int           `json:"plan_assignment_id" gorm:"index"`
     DeletedAt          gorm.DeletedAt `gorm:"index"`
 }
 
@@ -37,18 +38,26 @@ func (token *Token) Clean() {
 }
 
 func (token *Token) GetBillingMode() string {
-    if token.BillingMode == "" {
+    mode := strings.ToLower(strings.TrimSpace(token.BillingMode))
+    switch mode {
+    case common.BillingModeBalance, common.BillingModePlan, common.BillingModeAuto:
+        return mode
+    default:
         return common.BillingDefaultMode
     }
-    return token.BillingMode
 }
 
 func (token *Token) SetBillingMode(mode string) {
-    mode = strings.ToLower(strings.TrimSpace(mode))
-    if mode == "" {
-        mode = common.BillingDefaultMode
+    switch strings.ToLower(strings.TrimSpace(mode)) {
+    case common.BillingModeBalance:
+        token.BillingMode = common.BillingModeBalance
+    case common.BillingModePlan:
+        token.BillingMode = common.BillingModePlan
+    case common.BillingModeAuto:
+        token.BillingMode = common.BillingModeAuto
+    default:
+        token.BillingMode = common.BillingDefaultMode
     }
-    token.BillingMode = mode
 }
 
 func (token *Token) GetIpLimitsMap() map[string]any {
@@ -202,7 +211,7 @@ func (token *Token) Update() (err error) {
         }
     }()
     err = DB.Model(token).Select("name", "status", "expired_time", "remain_quota", "unlimited_quota",
-        "model_limits_enabled", "model_limits", "allow_ips", "group", "billing_mode").Updates(token).Error
+        "model_limits_enabled", "model_limits", "allow_ips", "group", "billing_mode", "plan_assignment_id").Updates(token).Error
     return err
 }
 

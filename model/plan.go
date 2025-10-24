@@ -42,6 +42,18 @@ func (plan *Plan) BeforeCreate(tx *gorm.DB) error {
     return nil
 }
 
+func GetPlanById(id int) (*Plan, error) {
+    if id == 0 {
+        return nil, nil
+    }
+    var plan Plan
+    err := DB.Where("id = ? AND deleted_at IS NULL", id).First(&plan).Error
+    if err != nil {
+        return nil, err
+    }
+    return &plan, nil
+}
+
 func init() {
     migrations.RegisterSchemaProvider(billingSchemaVersion, func() []interface{} {
         return []interface{}{

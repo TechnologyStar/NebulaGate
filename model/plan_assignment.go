@@ -98,6 +98,18 @@ func GetActivePlanAssignmentsTx(tx *gorm.DB, subjectType string, subjectId int, 
     return assignments, nil
 }
 
+func GetPlanAssignmentById(id int) (*PlanAssignment, error) {
+    if id == 0 {
+        return nil, errors.New("id required")
+    }
+    var assignment PlanAssignment
+    err := DB.Where("id = ?", id).First(&assignment).Error
+    if err != nil {
+        return nil, err
+    }
+    return &assignment, nil
+}
+
 func loadPlanAssignmentsFromCache(subjectType string, subjectId int, at time.Time) ([]*PlanAssignment, bool) {
     return nil, false
 }
