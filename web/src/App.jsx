@@ -48,9 +48,12 @@ import OAuth2Callback from './components/auth/OAuth2Callback';
 import PersonalSetting from './components/settings/PersonalSetting';
 import Setup from './pages/Setup';
 import SetupCheck from './components/layout/SetupCheck';
+import VoucherRedeem from './pages/Setting/VoucherRedeem';
 
 const Home = lazy(() => import('./pages/Home'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
+const LeaderboardPage = lazy(() => import('./pages/Dashboard/Leaderboard'));
+const PublicLogsPage = lazy(() => import('./pages/PublicLogs'));
 const About = lazy(() => import('./pages/About'));
 const UserAgreement = lazy(() => import('./pages/UserAgreement'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
@@ -100,6 +103,14 @@ function App() {
             </Suspense>
           }
         />
+        <Route
+          path='/public/logs'
+          element={
+            <Suspense fallback={<Loading></Loading>} key={location.pathname}>
+              <PublicLogsPage />
+            </Suspense>
+          }
+        />
         <Route path='/forbidden' element={<Forbidden />} />
         <Route
           path='/console/models'
@@ -134,6 +145,16 @@ function App() {
           }
         />
         <Route
+          path='/console/leaderboard'
+          element={
+            <PrivateRoute>
+              <Suspense fallback={<Loading></Loading>} key={location.pathname}>
+                <LeaderboardPage />
+              </Suspense>
+            </PrivateRoute>
+          }
+        />
+        <Route
           path='/console/redemption'
           element={
             <AdminRoute>
@@ -147,6 +168,14 @@ function App() {
             <AdminRoute>
               <PlansPage />
             </AdminRoute>
+          }
+        />
+        <Route
+          path='/console/voucher'
+          element={
+            <PrivateRoute>
+              <VoucherRedeem />
+            </PrivateRoute>
           }
         />
         <Route

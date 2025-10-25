@@ -37,8 +37,10 @@ const routerMap = {
   redemption: '/console/redemption',
   plans: '/console/plans',
   topup: '/console/topup',
+  voucher: '/console/voucher',
   user: '/console/user',
   log: '/console/log',
+  leaderboard: '/console/leaderboard',
   midjourney: '/console/midjourney',
   setting: '/console/setting',
   about: '/about',
@@ -89,6 +91,11 @@ const SiderBar = ({ onNavigate = () => {} }) => {
         to: '/log',
       },
       {
+        text: t('使用排行榜'),
+        itemKey: 'leaderboard',
+        to: '/leaderboard',
+      },
+      {
         text: t('绘图日志'),
         itemKey: 'midjourney',
         to: '/midjourney',
@@ -127,6 +134,11 @@ const SiderBar = ({ onNavigate = () => {} }) => {
         text: t('钱包管理'),
         itemKey: 'topup',
         to: '/topup',
+      },
+      {
+        text: t('兑换卡券'),
+        itemKey: 'voucher',
+        to: '/voucher',
       },
       {
         text: t('个人设置'),

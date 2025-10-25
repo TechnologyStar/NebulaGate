@@ -46,6 +46,8 @@ const TokensTable = (tokensData) => {
     setEditingToken,
     setShowEdit,
     refresh,
+    updateBillingMode,
+    billingModes,
     t,
   } = tokensData;
 
@@ -61,6 +63,8 @@ const TokensTable = (tokensData) => {
       setEditingToken,
       setShowEdit,
       refresh,
+      updateBillingMode,
+      billingModes,
     });
   }, [
     t,
@@ -72,6 +76,8 @@ const TokensTable = (tokensData) => {
     setEditingToken,
     setShowEdit,
     refresh,
+    updateBillingMode,
+    billingModes,
   ]);
 
   // Handle compact mode by removing fixed positioning

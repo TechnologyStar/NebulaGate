@@ -32,6 +32,7 @@ import {
   Typography,
   Input,
   Modal,
+  Select,
 } from '@douyinfe/semi-ui';
 import {
   timestamp2string,
@@ -307,6 +308,55 @@ const renderQuotaUsage = (text, record, t) => {
 };
 
 // Render operations column
+const renderBillingMode = (
+  record,
+  updateBillingMode,
+  billingModes,
+  t,
+) => {
+  const planDisabled =
+    !record.plan_assignment_id && !record.plan_assignment?.id;
+
+  const options = billingModes.map((mode) => ({
+    ...mode,
+    disabled: mode.value === 'plan' ? planDisabled : false,
+  }));
+
+  const select = (
+    <Select
+      size='small'
+      value={record.billing_mode || 'balance'}
+      optionList={options}
+      onChange={(value) => {
+        const extra = {};
+        if (value === 'plan') {
+          const planId =
+            record.plan_assignment_id || record.plan_assignment?.id;
+          if (!planId) {
+            showError(t('请先分配订阅计划后再切换为计划计费'));
+            return;
+          }
+          extra.plan_assignment_id = planId;
+        }
+        updateBillingMode(record.id, value, extra);
+      }}
+    />
+  );
+
+  if (planDisabled) {
+    return (
+      <Tooltip
+        content={t('当前令牌尚未绑定计划，无法切换至计划计费')}
+        position='top'
+      >
+        {select}
+      </Tooltip>
+    );
+  }
+
+  return select;
+};
+
 const renderOperations = (
   text,
   record,
@@ -434,6 +484,8 @@ export const getTokensColumns = ({
   setEditingToken,
   setShowEdit,
   refresh,
+  updateBillingMode,
+  billingModes,
 }) => {
   return [
     {
@@ -450,6 +502,12 @@ export const getTokensColumns = ({
       title: t('剩余额度/总额度'),
       key: 'quota_usage',
       render: (text, record) => renderQuotaUsage(text, record, t),
+    },
+    {
+      title: t('计费模式'),
+      dataIndex: 'billing_mode',
+      render: (text, record) =>
+        renderBillingMode(record, updateBillingMode, billingModes, t),
     },
     {
       title: t('分组'),
