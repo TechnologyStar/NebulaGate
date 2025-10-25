@@ -291,3 +291,38 @@ export function getChannelModels(type) {
   }
   return [];
 }
+
+export async function fetchPlans() {
+  const res = await API.get('/api/plan');
+  return res.data;
+}
+
+export async function fetchPlanDetail(id) {
+  const res = await API.get(`/api/plan/${id}`);
+  return res.data;
+}
+
+export async function createPlan(payload) {
+  const res = await API.post('/api/plan', payload);
+  return res.data;
+}
+
+export async function updatePlan(id, payload) {
+  const res = await API.put(`/api/plan/${id}`, payload);
+  return res.data;
+}
+
+export async function deletePlan(id) {
+  const res = await API.delete(`/api/plan/${id}`);
+  return res.data;
+}
+
+export async function generateVoucherBatch(payload) {
+  const res = await API.post('/api/voucher/batch', payload);
+  return res.data;
+}
+
+export async function listVoucherBatches(params = {}) {
+  const res = await API.get('/api/voucher/batch', { params });
+  return res.data;
+}
