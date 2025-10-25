@@ -105,6 +105,7 @@ export default function SettingsSidebarModulesUser() {
         channel: isSidebarModuleAllowed('admin', 'channel'),
         models: isSidebarModuleAllowed('admin', 'models'),
         redemption: isSidebarModuleAllowed('admin', 'redemption'),
+        plans: isSidebarModuleAllowed('admin', 'plans'),
         user: isSidebarModuleAllowed('admin', 'user'),
         setting: isSidebarModuleAllowed('admin', 'setting'),
       };
