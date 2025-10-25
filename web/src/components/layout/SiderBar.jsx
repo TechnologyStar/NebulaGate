@@ -35,6 +35,7 @@ const routerMap = {
   channel: '/console/channel',
   token: '/console/token',
   redemption: '/console/redemption',
+  plans: '/console/plans',
   topup: '/console/topup',
   user: '/console/user',
   log: '/console/log',
@@ -161,6 +162,12 @@ const SiderBar = ({ onNavigate = () => {} }) => {
         text: t('兑换码管理'),
         itemKey: 'redemption',
         to: '/redemption',
+        className: isAdmin() ? '' : 'tableHiddle',
+      },
+      {
+        text: t('套餐与卡券'),
+        itemKey: 'plans',
+        to: '/plans',
         className: isAdmin() ? '' : 'tableHiddle',
       },
       {
