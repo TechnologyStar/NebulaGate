@@ -27,6 +27,12 @@ import { useTableCompactMode } from '../common/useTableCompactMode';
 export const useTokensData = (openFluentNotification) => {
   const { t } = useTranslation();
 
+  const billingModes = [
+    { value: 'balance', label: t('余额') },
+    { value: 'plan', label: t('计划') },
+    { value: 'auto', label: t('自动') },
+  ];
+
   // Basic state
   const [tokens, setTokens] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -93,6 +99,32 @@ export const useTokensData = (openFluentNotification) => {
       showError(message);
     }
     setLoading(false);
+  };
+
+  const updateBillingMode = async (tokenId, billingMode, extraPayload = {}) => {
+    if (!tokenId) {
+      return;
+    }
+    setLoading(true);
+    try {
+      const payload = {
+        id: tokenId,
+        billing_mode: billingMode,
+        ...extraPayload,
+      };
+      const res = await API.put('/api/token/', payload);
+      const { success, message } = res.data;
+      if (!success) {
+        showError(message);
+      } else {
+        await refresh();
+        showSuccess(t('计费模式已更新'));
+      }
+    } catch (error) {
+      showError(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Refresh function
@@ -380,6 +412,8 @@ export const useTokensData = (openFluentNotification) => {
     batchDeleteTokens,
     batchCopyTokens,
     syncPageData,
+    updateBillingMode,
+    billingModes,
 
     // Translation
     t,

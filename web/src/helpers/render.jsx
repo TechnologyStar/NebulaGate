@@ -68,6 +68,8 @@ import {
   CreditCard,
   Layers,
   Gift,
+  Trophy,
+  Ticket,
   User,
   Settings,
   CircleUser,
@@ -99,12 +101,16 @@ export function getLucideIcon(key, selected = false) {
       return <Key {...commonProps} color={iconColor} />;
     case 'log':
       return <BarChart3 {...commonProps} color={iconColor} />;
+    case 'leaderboard':
+      return <Trophy {...commonProps} color={iconColor} />;
     case 'midjourney':
       return <ImageIcon {...commonProps} color={iconColor} />;
     case 'task':
       return <CheckSquare {...commonProps} color={iconColor} />;
     case 'topup':
       return <CreditCard {...commonProps} color={iconColor} />;
+    case 'voucher':
+      return <Ticket {...commonProps} color={iconColor} />;
     case 'channel':
       return <Layers {...commonProps} color={iconColor} />;
     case 'redemption':

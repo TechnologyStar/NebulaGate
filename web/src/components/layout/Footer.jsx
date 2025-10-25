@@ -22,6 +22,7 @@ import { useTranslation } from 'react-i18next';
 import { Typography } from '@douyinfe/semi-ui';
 import { getFooterHTML, getLogo, getSystemName } from '../../helpers';
 import { StatusContext } from '../../context/Status';
+import { useBillingFeatures } from '../../hooks/billing/useBillingFeatures';
 
 const FooterBar = () => {
   const { t } = useTranslation();
@@ -30,6 +31,8 @@ const FooterBar = () => {
   const logo = getLogo();
   const [statusState] = useContext(StatusContext);
   const isDemoSiteMode = statusState?.status?.demo_site_enabled || false;
+  const { config } = useBillingFeatures();
+  const publicLogsEnabled = config?.public_logs?.enabled;
 
   const loadFooter = () => {
     let footer_html = localStorage.getItem('footer_html');
@@ -193,6 +196,11 @@ const FooterBar = () => {
             <Typography.Text className='text-sm !text-semi-color-text-1'>
               © {currentYear} {systemName}. {t('版权所有')}
             </Typography.Text>
+            {publicLogsEnabled && (
+              <a href='/public/logs' className='text-sm !text-semi-color-text-1 underline'>
+                {t('公开日志')}
+              </a>
+            )}
           </div>
 
           <div className='text-sm'>
@@ -211,7 +219,7 @@ const FooterBar = () => {
         </div>
       </footer>
     ),
-    [logo, systemName, t, currentYear, isDemoSiteMode],
+    [logo, systemName, t, currentYear, isDemoSiteMode, publicLogsEnabled],
   );
 
   useEffect(() => {

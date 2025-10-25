@@ -49,12 +49,14 @@ export const useSidebar = () => {
       detail: true,
       token: true,
       log: true,
+      leaderboard: true,
       midjourney: true,
       task: true,
     },
     personal: {
       enabled: true,
       topup: true,
+      voucher: true,
       personal: true,
     },
     admin: {
