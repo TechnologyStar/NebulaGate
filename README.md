@@ -1,230 +1,354 @@
-<p align="right">
-   <strong>中文</strong> | <a href="./README.en.md">English</a> | <a href="./README.fr.md">Français</a> | <a href="./README.ja.md">日本語</a>
-</p>
-<div align="center">
+# NebulaGate（基于 new-api 的增强发行版）
 
-![new-api](/web/public/logo.png)
+> ⚠️ 本文档为你二开仓库的**新 README 模版**。为避免与上游重名/冲突，展示名统一为 **NebulaGate**（代号），仓库名仍可保留 `TechnologyStar/new-api`。如需完全避开冲突，可将镜像名/可执行文件名改为 `nebulagate`（示例已用可替换占位符）。
 
-# New API
+---
 
-🍥新一代大模型网关与AI资产管理系统
+## 目录
 
-<a href="https://trendshift.io/repositories/8227" target="_blank"><img src="https://trendshift.io/api/badge/repositories/8227" alt="Calcium-Ion%2Fnew-api | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
+* [背景与定位](#背景与定位)
+* [NebulaGate 相比上游的差异与优势](#nebulagate-相比上游的差异与优势)
+* [特性总览](#特性总览)
+* [系统架构](#系统架构)
+* [兼容性与支持矩阵](#兼容性与支持矩阵)
+* [快速开始](#快速开始)
 
-<p align="center">
-  <a href="https://raw.githubusercontent.com/Calcium-Ion/new-api/main/LICENSE">
-    <img src="https://img.shields.io/github/license/Calcium-Ion/new-api?color=brightgreen" alt="license">
-  </a>
-  <a href="https://github.com/Calcium-Ion/new-api/releases/latest">
-    <img src="https://img.shields.io/github/v/release/Calcium-Ion/new-api?color=brightgreen&include_prereleases" alt="release">
-  </a>
-  <a href="https://github.com/users/Calcium-Ion/packages/container/package/new-api">
-    <img src="https://img.shields.io/badge/docker-ghcr.io-blue" alt="docker">
-  </a>
-  <a href="https://hub.docker.com/r/CalciumIon/new-api">
-    <img src="https://img.shields.io/badge/docker-dockerHub-blue" alt="docker">
-  </a>
-  <a href="https://goreportcard.com/report/github.com/Calcium-Ion/new-api">
-    <img src="https://goreportcard.com/badge/github.com/Calcium-Ion/new-api" alt="GoReportCard">
-  </a>
-</p>
-</div>
+  * [方式 A：Docker 一条命令](#方式-aDocker-一条命令)
+  * [方式 B：Docker Compose（推荐）](#方式-bdocker-compose推荐)
+  * [方式 C：原生二进制 + systemd](#方式-c原生二进制--systemd)
+* [配置与环境变量](#配置与环境变量)
+* [管理后台与运营流程](#管理后台与运营流程)
+* [计费域模型（Fork 新增）](#计费域模型fork-新增)
+* [治理与分流（Fork 新增）](#治理与分流fork-新增)
+* [升级/迁移/备份](#升级迁移备份)
+* [安全加固建议](#安全加固建议)
+* [性能调优指南](#性能调优指南)
+* [常见问题 FAQ](#常见问题-faq)
+* [Roadmap](#roadmap)
+* [License](#license)
 
-## 📝 项目说明
+---
 
-> [!NOTE]  
-> 本项目为开源项目，在[One API](https://github.com/songquanpeng/one-api)的基础上进行二次开发
+## 背景与定位
 
-> [!IMPORTANT]  
-> - 本项目仅供个人学习使用，不保证稳定性，且不提供任何技术支持。
-> - 使用者必须在遵循 OpenAI 的[使用条款](https://openai.com/policies/terms-of-use)以及**法律法规**的情况下使用，不得用于非法用途。
-> - 根据[《生成式人工智能服务管理暂行办法》](http://www.cac.gov.cn/2023-07/13/c_1690898327029107.htm)的要求，请勿对中国地区公众提供一切未经备案的生成式人工智能服务。
+**NebulaGate** 是在上游 `new-api` 基础上增强的 **LLM 网关 & AI 资产管理系统**，面向个人到中小企业的**统一接入、计费结算、治理审计、可视化运营**场景。
 
-<h2>🤝 我们信任的合作伙伴</h2>
-<p id="premium-sponsors">&nbsp;</p>
-<p align="center"><strong>排名不分先后</strong></p>
-<p align="center">
-  <a href="https://www.cherry-ai.com/" target=_blank><img
-    src="./docs/images/cherry-studio.png" alt="Cherry Studio" height="120"
-  /></a>
-  <a href="https://bda.pku.edu.cn/" target=_blank><img
-    src="./docs/images/pku.png" alt="北京大学" height="120"
-  /></a>
-  <a href="https://www.compshare.cn/?ytag=GPU_yy_gh_newapi" target=_blank><img
-    src="./docs/images/ucloud.png" alt="UCloud 优刻得" height="120"
-  /></a>
-  <a href="https://www.aliyun.com/" target=_blank><img
-    src="./docs/images/aliyun.png" alt="阿里云" height="120"
-  /></a>
-  <a href="https://io.net/" target=_blank><img
-    src="./docs/images/io-net.png" alt="IO.NET" height="120"
-  /></a>
-</p>
-<p>&nbsp;</p>
+它保留了上游的**多模型聚合、OpenAI/Claude/Gemini/Responses/Realtime/Rerank** 等能力，并在此之上新增：**企业计费引擎、套餐与代金券、用量生命周期调度、治理与分流链路、可视化运营后台**等模块，实现从“接入 → 使用 → 计费 → 审计”的闭环。
 
-## 📚 文档
+---
 
-详细文档请访问我们的官方Wiki：[https://docs.newapi.pro/](https://docs.newapi.pro/)
+## NebulaGate 相比上游的差异与优势
 
-也可访问AI生成的DeepWiki:
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/QuantumNous/new-api)
+> 下表聚焦你在 Fork 中新增/增强的关键能力。
 
-## ✨ 主要特性
+| 能力                                              | 上游 new-api | NebulaGate（本 Fork）                                      |
+| ----------------------------------------------- | ---------- | ------------------------------------------------------- |
+| 多模型聚合 / OpenAI 兼容                               | ✅          | ✅（沿用）                                                   |
+| Claude / Gemini / Responses / Realtime / Rerank | ✅          | ✅（沿用）                                                   |
+| Token/渠道/权重/看板                                  | ✅          | ✅（沿用）                                                   |
+| 充值（易支付/Stripe）                                  | ✅          | ✅（沿用）                                                   |
+| **企业计费域模型（Plan / Balance / Ledger / 幂等）**       | ❌（基础或无）    | **✅ 新增：可审计的账本、计划周期与幂等保障**                               |
+| **套餐（Plans）及用户关联**                              | ❌          | **✅ 新增：可将计划分配到用户/组织**                                   |
+| **代金券（Vouchers）发放与兑换**                          | ❌          | **✅ 新增：促销/补偿/风控通道**                                     |
+| **用量生命周期调度（Scheduler）**                         | ❌          | **✅ 新增：周期重置/结转/到期提醒**                                   |
+| **治理（Governance）与分流链路**                         | ❌          | **✅ 新增：检测 → 分流/重路由 → 审计日志**                             |
+| **运营后台增强（计费/治理 UI）**                            | ❌          | **✅ 新增：Plan/Voucher/治理配置页面**                            |
+| **加密与多机一致性**                                    | 基础配置       | **增强建议**：`SESSION_SECRET`、共享 Redis 时 `CRYPTO_SECRET` 必配 |
 
-New API提供了丰富的功能，详细特性请参考[特性说明](https://docs.newapi.pro/wiki/features-introduction)：
+> 结论：NebulaGate 将上游“聚合网关 + 基础运营”提升为“**商用计费 + 治理审计 + 生命周期运维**”的一体化解决方案。
 
-1. 🎨 全新的UI界面
-2. 🌍 多语言支持
-3. 💰 支持在线充值功能，当前支持易支付和Stripe
-4. 🔍 支持用key查询使用额度（配合[neko-api-key-tool](https://github.com/Calcium-Ion/neko-api-key-tool)）
-5. 🔄 兼容原版One API的数据库
-6. 💵 支持模型按次数收费
-7. ⚖️ 支持渠道加权随机
-8. 📈 数据看板（控制台）
-9. 🔒 令牌分组、模型限制
-10. 🤖 支持更多授权登陆方式（LinuxDO,Telegram、OIDC）
-11. 🔄 支持Rerank模型（Cohere和Jina），[接口文档](https://docs.newapi.pro/api/jinaai-rerank)
-12. ⚡ 支持OpenAI Realtime API（包括Azure渠道），[接口文档](https://docs.newapi.pro/api/openai-realtime)
-13. ⚡ 支持 **OpenAI Responses** 格式，[接口文档](https://docs.newapi.pro/api/openai-responses)
-14. ⚡ 支持 **Claude Messages** 格式，[接口文档](https://docs.newapi.pro/api/anthropic-chat)
-15. ⚡ 支持 **Google Gemini** 格式，[接口文档](https://docs.newapi.pro/api/google-gemini-chat/)
-16. 🧠 支持通过模型名称后缀设置 reasoning effort：
-    1. OpenAI o系列模型
-        - 添加后缀 `-high` 设置为 high reasoning effort (例如: `o3-mini-high`)
-        - 添加后缀 `-medium` 设置为 medium reasoning effort (例如: `o3-mini-medium`)
-        - 添加后缀 `-low` 设置为 low reasoning effort (例如: `o3-mini-low`)
-    2. Claude 思考模型
-        - 添加后缀 `-thinking` 启用思考模式 (例如: `claude-3-7-sonnet-20250219-thinking`)
-17. 🔄 思考转内容功能
-18. 🔄 针对用户的模型限流功能
-19. 🔄 请求格式转换功能，支持以下三种格式转换：
-    1. OpenAI Chat Completions => Claude Messages （OpenAI格式调用Claude模型）
-    2. Clade Messages => OpenAI Chat Completions (可用于Claude Code调用第三方模型)
-    3. OpenAI Chat Completions => Gemini Chat （OpenAI格式调用Gemini模型）
-20. 💰 缓存计费支持，开启后可以在缓存命中时按照设定的比例计费：
-    1. 在 `系统设置-运营设置` 中设置 `提示缓存倍率` 选项
-    2. 在渠道中设置 `提示缓存倍率`，范围 0-1，例如设置为 0.5 表示缓存命中时按照 50% 计费
-    3. 支持的渠道：
-        - [x] OpenAI
-        - [x] Azure
-        - [x] DeepSeek
-        - [x] Claude
+---
 
-## 模型支持
+## 特性总览
 
-此版本支持多种模型，详情请参考[接口文档-中继接口](https://docs.newapi.pro/api)：
+### 继承自上游
 
-1. 第三方模型 **gpts** （gpt-4-gizmo-*）
-2. 第三方渠道[Midjourney-Proxy(Plus)](https://github.com/novicezk/midjourney-proxy)接口，[接口文档](https://docs.newapi.pro/api/midjourney-proxy-image)
-3. 第三方渠道[Suno API](https://github.com/Suno-API/Suno-API)接口，[接口文档](https://docs.newapi.pro/api/suno-music)
-4. 自定义渠道，支持填入完整调用地址
-5. Rerank模型（[Cohere](https://cohere.ai/)和[Jina](https://jina.ai/)），[接口文档](https://docs.newapi.pro/api/jinaai-rerank)
-6. Claude Messages 格式，[接口文档](https://docs.newapi.pro/api/anthropic-chat)
-7. Google Gemini格式，[接口文档](https://docs.newapi.pro/api/google-gemini-chat/)
-8. Dify，当前仅支持chatflow
-9. 更多接口请参考[接口文档](https://docs.newapi.pro/api)
+* OpenAI 兼容中继：Chat Completions、Responses、Streaming、Realtime
+* Claude/Gemini 兼容、Rerank 支持
+* 渠道管理、加权随机、故障切换
+* Token/令牌管理与分组
+* 易支付/Stripe 充值
+* 数据看板与运营指标
 
-## 环境变量配置
+### 本 Fork 新增/强化
 
-详细配置说明请参考[安装指南-环境变量配置](https://docs.newapi.pro/installation/environment-variables)：
+* **Billing Engine**：Plan、Balance、Ledger（审计日志）、幂等保证
+* **套餐与授权**：按用户/组织分配计划与额度
+* **Voucher**：代金券批量发放、兑换码校验、可配置有效期/额度/适用范围
+* **Scheduler**：计划周期重置（如月度）、结转策略、到期通知（预留 Hook）
+* **Governance Pipeline**：请求治理检测（关键词/策略/地域等）→ 分流/重路由 → 审计记录
+* **运营后台**：新增计费/代金券/治理的 GUI 管理页
 
-- `GENERATE_DEFAULT_TOKEN`：是否为新注册用户生成初始令牌，默认为 `false`
-- `STREAMING_TIMEOUT`：流式回复超时时间，默认300秒
-- `DIFY_DEBUG`：Dify渠道是否输出工作流和节点信息，默认 `true`
-- `GET_MEDIA_TOKEN`：是否统计图片token，默认 `true`
-- `GET_MEDIA_TOKEN_NOT_STREAM`：非流情况下是否统计图片token，默认 `true`
-- `UPDATE_TASK`：是否更新异步任务（Midjourney、Suno），默认 `true`
-- `GEMINI_VISION_MAX_IMAGE_NUM`：Gemini模型最大图片数量，默认 `16`
-- `MAX_FILE_DOWNLOAD_MB`: 最大文件下载大小，单位MB，默认 `20`
-- `CRYPTO_SECRET`：加密密钥，用于加密Redis数据库内容
-- `AZURE_DEFAULT_API_VERSION`：Azure渠道默认API版本，默认 `2025-04-01-preview`
-- `NOTIFICATION_LIMIT_DURATION_MINUTE`：邮件等通知限制持续时间，默认 `10`分钟
-- `NOTIFY_LIMIT_COUNT`：用户通知在指定持续时间内的最大数量，默认 `2`
-- `ERROR_LOG_ENABLED=true`: 是否记录并显示错误日志，默认`false`
-- `FEATURE_PLAN_ASSIGNMENT_CACHE`: 预留开关，用于开启计划分配的 Redis 缓存，加速后续账单查询（默认关闭）
-- `FEATURE_USAGE_COUNTER_CACHE`: 预留开关，用于开启使用量计数的缓存层（默认关闭）
-- `FEATURE_REQUEST_AGGREGATE_CACHE`: 预留开关，用于开启排行榜聚合结果缓存（默认关闭）
+---
 
-## 部署
-
-详细部署指南请参考[安装指南-部署方式](https://docs.newapi.pro/installation)：
-
-> [!TIP]
-> 最新版Docker镜像：`calciumion/new-api:latest`  
-
-### 多机部署注意事项
-- 必须设置环境变量 `SESSION_SECRET`，否则会导致多机部署时登录状态不一致
-- 如果公用Redis，必须设置 `CRYPTO_SECRET`，否则会导致多机部署时Redis内容无法获取
-
-### 部署要求
-- 本地数据库（默认）：SQLite（Docker部署必须挂载`/data`目录）
-- 远程数据库：MySQL版本 >= 5.7.8，PgSQL版本 >= 9.6
-
-### 部署方式
-
-#### 使用宝塔面板Docker功能部署
-安装宝塔面板（**9.2.0版本**及以上），在应用商店中找到**New-API**安装即可。
-[图文教程](./docs/BT.md)
-
-#### 使用Docker Compose部署（推荐）
-```shell
-# 下载项目源码
-git clone https://github.com/QuantumNous/new-api.git
-
-# 进入项目目录
-cd new-api
-
-# 根据需要编辑 docker-compose.yml 文件
-# 使用nano编辑器
-nano docker-compose.yml
-# 或使用vim编辑器
-# vim docker-compose.yml
+## 系统架构
 
 ```
-
-#### 直接使用Docker镜像
-```shell
-# 使用SQLite
-docker run --name new-api -d --restart always -p 3000:3000 -e TZ=Asia/Shanghai -v /home/ubuntu/data/new-api:/data calciumion/new-api:latest
-
-# 使用MySQL
-docker run --name new-api -d --restart always -p 3000:3000 -e SQL_DSN="root:123456@tcp(localhost:3306)/oneapi" -e TZ=Asia/Shanghai -v /home/ubuntu/data/new-api:/data calciumion/new-api:latest
+           +------------------+            +----------------+
+Client --> |  NebulaGate API  |--Routing-->|  Provider SDKs |
+(Web/SDK)  |  (Gateway Core)  |            |  (OpenAI/...)  |
+           +---------+--------+            +-------+--------+
+                     |                             |
+                     | Billing & Governance        |
+                     v                             v
+               +-----+------+               +------+------+
+               |  Billing   |<--Ledger----->|  Database  |
+               |  (Plans/   |               | (SQLite/   |
+               |  Vouchers) |               |  MySQL/PG) |
+               +-----+------+               +------+------+
+                     |                             ^
+                     | Scheduler                    |
+                     v                             |
+               +-----+------+               +------+------+
+               |  Redis     |<--Cache/Crypto Keys|  Admin UI  |
+               +------------+               +-------------+
 ```
 
-## 渠道重试与缓存
-渠道重试功能已经实现，可以在`设置->运营设置->通用设置->失败重试次数`设置重试次数，**建议开启缓存**功能。
+---
 
-### 缓存设置方法
-1. `REDIS_CONN_STRING`：设置Redis作为缓存
-2. `MEMORY_CACHE_ENABLED`：启用内存缓存（设置了Redis则无需手动设置）
+## 兼容性与支持矩阵
 
-## 接口文档
+* **接口兼容**：默认兼容上游的主要路由与参数（OpenAI/Claude/Gemini/Responses/Realtime/Rerank）。
+* **数据库**：SQLite（试用/单机）、MySQL ≥5.7.8、PostgreSQL ≥9.6。
+* **缓存**：Redis（建议生产开启；如多机共享，需配 `CRYPTO_SECRET`）。
+* **时区**：建议设置 `TZ=Asia/Shanghai` 或你的本地时区。
 
-详细接口文档请参考[接口文档](https://docs.newapi.pro/api)：
+---
 
-- [聊天接口（Chat Completions）](https://docs.newapi.pro/api/openai-chat)
-- [响应接口 （Responses）](https://docs.newapi.pro/api/openai-responses)
-- [图像接口（Image）](https://docs.newapi.pro/api/openai-image)
-- [重排序接口（Rerank）](https://docs.newapi.pro/api/jinaai-rerank)
-- [实时对话接口（Realtime）](https://docs.newapi.pro/api/openai-realtime)
-- [Claude聊天接口](https://docs.newapi.pro/api/anthropic-chat)
-- [Google Gemini聊天接口](https://docs.newapi.pro/api/google-gemini-chat)
+## 快速开始
 
-## 相关项目
-- [One API](https://github.com/songquanpeng/one-api)：原版项目
-- [Midjourney-Proxy](https://github.com/novicezk/midjourney-proxy)：Midjourney接口支持
-- [neko-api-key-tool](https://github.com/Calcium-Ion/neko-api-key-tool)：用key查询使用额度
+> 下面给出 3 种方式，镜像名使用占位：`YOUR_DOCKER_IMAGE/nebulagate:latest`。如你沿用原镜像，可替换为原有镜像名；如需完全去重命名，请在 CI/CD 中推送到你的镜像仓库。
 
-其他基于New API的项目：
-- [new-api-horizon](https://github.com/Calcium-Ion/new-api-horizon)：New API高性能优化版
+### 方式 A：Docker 一条命令
 
-## 帮助支持
+```bash
+# 数据持久化目录（用于 SQLite 或本地文件）
+mkdir -p /opt/nebulagate-data
 
-如有问题，请参考[帮助支持](https://docs.newapi.pro/support)：
-- [社区交流](https://docs.newapi.pro/support/community-interaction)
-- [反馈问题](https://docs.newapi.pro/support/feedback-issues)
-- [常见问题](https://docs.newapi.pro/support/faq)
+# SQLite 直跑（试用/小流量）
+docker run --name nebulagate -d --restart always -p 3000:3000 \
+  -e TZ=Asia/Shanghai \
+  -e SESSION_SECRET='请改成强随机值' \
+  -v /opt/nebulagate-data:/data \
+  YOUR_DOCKER_IMAGE/nebulagate:latest
 
-## 🌟 Star History
+# 如使用 MySQL/PG，追加 SQL_DSN
+# -e SQL_DSN='user:pass@tcp(mysql:3306)/oneapi?charset=utf8mb4&parseTime=True&loc=Local'
+```
 
-[![Star History Chart](https://api.star-history.com/svg?repos=Calcium-Ion/new-api&type=Date)](https://star-history.com/#Calcium-Ion/new-api&Date)
+### 方式 B：Docker Compose（推荐）
+
+`docker-compose.yml` 示例（已去重命名，便于与你线上环境并存）：
+
+```yaml
+version: "3.9"
+services:
+  nebulagate:
+    image: YOUR_DOCKER_IMAGE/nebulagate:latest  # 替换为你的镜像名
+    container_name: nebulagate
+    restart: always
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      - TZ=Asia/Shanghai
+      - SESSION_SECRET=${SESSION_SECRET}
+      - SQL_DSN=${SQL_DSN:-}
+      - REDIS_CONN_STRING=${REDIS_CONN_STRING:-}
+      - CRYPTO_SECRET=${CRYPTO_SECRET:-}
+    volumes:
+      - ./data:/data
+    depends_on:
+      - redis
+      - mysql
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    volumes:
+      - ./redis:/data
+    restart: always
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: example
+      MYSQL_DATABASE: oneapi
+      TZ: Asia/Shanghai
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    volumes:
+      - ./mysql:/var/lib/mysql
+    restart: always
+```
+
+`.env` 示例：
+
+```dotenv
+SESSION_SECRET=请改成强随机值
+# MySQL:
+SQL_DSN=root:example@tcp(mysql:3306)/oneapi?charset=utf8mb4&parseTime=True&loc=Local
+# Redis（可选/建议生产开启）
+REDIS_CONN_STRING=redis://@redis:6379/0
+# 如启用共享 Redis，请务必设置：
+CRYPTO_SECRET=请改成强随机值
+```
+
+启动：
+
+```bash
+docker compose up -d
+```
+
+### 方式 C：原生二进制 + systemd
+
+```bash
+# 编译
+make build || go build -o nebulagate ./...
+
+# 运行目录
+sudo mkdir -p /opt/nebulagate /var/lib/nebulagate
+sudo cp nebulagate /opt/nebulagate/
+
+# 环境变量（/etc/default/nebulagate）
+sudo tee /etc/default/nebulagate >/dev/null <<'EOF'
+SESSION_SECRET=强随机
+SQL_DSN=
+REDIS_CONN_STRING=
+CRYPTO_SECRET=
+TZ=Asia/Shanghai
+EOF
+
+# systemd 单元（/etc/systemd/system/nebulagate.service）
+[Unit]
+Description=NebulaGate Service
+After=network.target
+
+[Service]
+EnvironmentFile=/etc/default/nebulagate
+ExecStart=/opt/nebulagate/nebulagate
+User=nobody
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
+# 启动
+sudo systemctl daemon-reload
+sudo systemctl enable --now nebulagate
+```
+
+---
+
+## 配置与环境变量
+
+> 仅列常用项；其余保持与上游一致。
+
+| 变量                          | 说明            | 建议                      |
+| --------------------------- | ------------- | ----------------------- |
+| `SESSION_SECRET`            | 会话/签名密钥，多机必配  | 生产必填，强随机                |
+| `CRYPTO_SECRET`             | 共享 Redis 加密密钥 | 启用共享 Redis 时必填          |
+| `SQL_DSN`                   | MySQL/PG 连接串  | 生产建议使用 MySQL/PG         |
+| `REDIS_CONN_STRING`         | Redis 连接串     | 生产建议开启缓存与治理存储           |
+| `TZ`                        | 时区            | `Asia/Shanghai` 或你的本地时区 |
+| `ERROR_LOG_ENABLED`         | 错误日志          | 生产建议开启                  |
+| `STREAMING_TIMEOUT`         | 流式超时          | 视链路情况调整                 |
+| `AZURE_DEFAULT_API_VERSION` | Azure 兼容      | 如使用 Azure 路由时配置         |
+
+---
+
+## 管理后台与运营流程
+
+1. **渠道**：接入上游（OpenAI/Claude/Gemini/Azure/DeepSeek…），配置权重/重试策略。
+2. **令牌**：为调用方生成 API Key，可按组/用户管理。
+3. **套餐（本 Fork 新增）**：创建 Plan（额度/周期/结转策略），分配给用户/组织。
+4. **代金券（本 Fork 新增）**：批量发放兑换码，设定有效期/额度/适用范围，发给用户自助兑换。
+5. **治理（本 Fork 新增）**：启用关键词/地域/模型/路径等策略，违规或命中条件时**分流/重路由**并记录审计日志。
+6. **看板**：观察用量、成功率、时延、失败原因；结合账本（Ledger）做对账与审计。
+
+---
+
+## 计费域模型（Fork 新增）
+
+* **Plan**：定义额度/周期（如月度）与结转策略（可关/可开上限）。
+* **Balance**：用户/组织的可用余额（额度/金额）。
+* **Ledger**：不可篡改的审计账本，记录变更（充值、消耗、退款、结转）。
+* **Idempotency**：通过幂等键避免重复记账；失败回滚与补偿流程可配置。
+* **调度**：周期重置、结转与到期通知由 Scheduler 触发，可对接外部通知（WebHook/Email/SMS）。
+
+> 目标：将“调用量 → 成本 → 收入/额度”端到端闭环，支持促销/补偿/风控等商业化运营。
+
+---
+
+## 治理与分流（Fork 新增）
+
+* **策略**：关键词/地域/模型/路径/速率等；命中后执行 **阻断/降级/改路由**。
+* **分流/重路由**：按策略将请求改发到其它渠道或模型，降低失败率与合规风险。
+* **审计**：将命中记录写入 Ledger/审计日志，配合看板追踪。
+
+---
+
+## 升级/迁移/备份
+
+* **Docker/Compose 升级**：
+
+  ```bash
+  docker pull YOUR_DOCKER_IMAGE/nebulagate:latest && docker restart nebulagate
+  # 或
+  docker compose pull && docker compose up -d
+  ```
+* **数据库迁移**：随版本提供自动迁移（如包含 `migrate` 步骤请在发布说明注明）。
+* **备份**：
+
+  * SQLite：备份挂载目录 `./data`（冷备期间停服或使用文件级快照）。
+  * MySQL/PG：使用常规备份策略（mysqldump/pg_dump + binlog/WAL）。
+
+---
+
+## 安全加固建议
+
+* 强制设置 `SESSION_SECRET`、共享 Redis 时 `CRYPTO_SECRET`。
+* 通过反向代理（Nginx/Caddy）启用 **HTTPS/HTTP2**，仅暴露 80/443。
+* 将网关端口置于内网，外网只暴露代理；开启 WAF/限速（如 Nginx `limit_req`）。
+* 最小权限：容器与数据库账号分权、只读文件系统（可选）。
+* 日志脱敏：对密钥/账号信息做掩码。
+
+---
+
+## 性能调优指南
+
+* **连接池**：数据库与 Redis 连接池大小按核心数/负载调优。
+* **重试与超时**：为各渠道设置合理超时与重试上限，避免雪崩。
+* **权重与分流**：结合失败率/时延动态调整渠道权重；命中治理策略时优先路由到稳定模型。
+* **缓存**：开启 Redis 缓存/元数据缓存，降低 DB 压力。
+
+---
+
+## 常见问题 FAQ
+
+**Q: 与上游 new-api 有何不同？**
+A: 本 Fork 在其基础上新增 **计费引擎、套餐/代金券、生命周期调度、治理与分流、运营后台增强**，面向商业化与合规运营。
+
+**Q: 如何避免与线上已部署的 new-api 冲突？**
+A: 使用本 README 的去重命名：可执行文件 `nebulagate`、容器名 `nebulagate`、镜像 `YOUR_DOCKER_IMAGE/nebulagate`、端口/卷路径独立。
+
+**Q: 生产部署建议？**
+A: 使用 Compose + MySQL/PG + Redis；务必配置 `SESSION_SECRET`/`CRYPTO_SECRET`，置于反代之后并启用 HTTPS；定期备份。
+
+**Q: 升级是否破坏已有数据？**
+A: 遵循语义化发布；涉及模型/表结构变更会在 Release Note 提供迁移指引。
+
+---
+
+## Roadmap
+
+* [ ] Voucher 使用统计与分布式风控规则
+* [ ] 更细粒度的配额策略（按模型/路径）
+* [ ] 审计日志导出与 SIEM 对接
+* [ ] 多租户组织视图与对账报表
+
+---
+
+## License
+
+* 继承上游协议（在此处放置具体 LICENSE 信息与版权说明）。
