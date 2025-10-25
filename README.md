@@ -1,6 +1,6 @@
 # NebulaGate（基于 new-api 的增强发行版）
 
-> ⚠️ 本文档为你二开仓库的**新 README 模版**。为避免与上游重名/冲突，展示名统一为 **NebulaGate**（代号），仓库名仍可保留 `TechnologyStar/new-api`。如需完全避开冲突，可将镜像名/可执行文件名改为 `nebulagate`（示例已用可替换占位符）。
+
 
 ---
 
