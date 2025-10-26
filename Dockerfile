@@ -3,40 +3,36 @@ FROM oven/bun:1.1.29-alpine AS webbuilder
 WORKDIR /app/web
 ENV BUN_ENABLE_TELEMETRY=0
 
-# Tooling for native addons + glibc compat for Alpine
-RUN apk add --no-cache git python3 make g++ bash libc6-compat
+# 一些老的 alpine 镜像默认仓库会过期，先把仓库指向 latest-stable 并更新索引
+RUN set -eux; \
+    sed -i -E 's#https?://.*/alpine/v[0-9.]+/#https://dl-cdn.alpinelinux.org/alpine/latest-stable/#g' /etc/apk/repositories; \
+    apk update
 
-# (Better cache) install deps first if lockfile exists
+# 构建所需工具：
+# - build-base: 包含 make/gcc/g++
+# - libc6-compat: 兼容层，避免 esbuild/sharp 等预编译二进制在 musl 下崩溃
+RUN apk add --no-cache git python3 build-base bash libc6-compat
+
+# 先复制 manifest（利于缓存），再装依赖
 COPY web/package.json web/bun.lockb* ./
-
-# If you always have a lock, keep only the frozen path; otherwise fall back.
 RUN if [ -f bun.lockb ]; then bun install --frozen-lockfile; else bun install; fi
 
-# Now copy the rest of the sources
+# 再复制剩余源码
 COPY web/ ./
 
-# Build args / envs — default to dev if not provided
+# 构建版本号：默认 dev，可被 --build-arg 覆盖
 ARG VITE_REACT_APP_VERSION=dev
 ENV VITE_REACT_APP_VERSION=${VITE_REACT_APP_VERSION}
 
-# Print versions and dependency tree explicitly
+# 打印 bun 版本与依赖树，便于定位问题
 RUN echo "Bun version:" && bun --version
 RUN bun pm ls || true
 
-# Avoid OOMs in CI; tune as needed
+# 避免因内存不足导致构建中断（按 CI 机器内存大小调整）
 ENV NODE_OPTIONS="--max-old-space-size=2048"
 
-# Prefer your package.json script; otherwise use vite directly
-# (split into separate steps so an error shows the real message)
-RUN if bun x vite --version >/dev/null 2>&1; then \
-      echo "vite found via bunx"; \
-    else \
-      echo "vite not found via bunx; will rely on package.json scripts"; \
-    fi
-
-RUN --mount=type=cache,target=/root/.bun \
-    --mount=type=cache,target=/app/web/node_modules \
-    (bun run build --verbose || bun run build || bun x vite build --logLevel info)
+# 构建（优先使用 package.json 的 build 脚本，不行再直接用 vite）
+RUN (bun run build --verbose || bun run build || bun x vite build --logLevel info)
 
 # ==================== Stage 2: Go Builder（稳定版 Golang） ====================
 # go.mod 指定了 Go 1.25.1；如果基础镜像版本过低，`go mod download` 会直接报错
