@@ -365,6 +365,7 @@ const renderOperations = (
   setShowEdit,
   manageToken,
   refresh,
+  onShowIpUsage,
   t,
 ) => {
   let chatsArray = [];
@@ -453,6 +454,14 @@ const renderOperations = (
       </Button>
 
       <Button
+        type='secondary'
+        size='small'
+        onClick={() => onShowIpUsage(record)}
+      >
+        {t('IP 使用统计')}
+      </Button>
+
+      <Button
         type='danger'
         size='small'
         onClick={() => {
@@ -486,6 +495,7 @@ export const getTokensColumns = ({
   refresh,
   updateBillingMode,
   billingModes,
+  onShowIpUsage,
 }) => {
   return [
     {
@@ -562,6 +572,7 @@ export const getTokensColumns = ({
           setShowEdit,
           manageToken,
           refresh,
+          onShowIpUsage,
           t,
         ),
     },

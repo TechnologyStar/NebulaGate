@@ -48,6 +48,7 @@ const TokensTable = (tokensData) => {
     refresh,
     updateBillingMode,
     billingModes,
+    onShowIpUsage,
     t,
   } = tokensData;
 
@@ -65,6 +66,7 @@ const TokensTable = (tokensData) => {
       refresh,
       updateBillingMode,
       billingModes,
+      onShowIpUsage,
     });
   }, [
     t,
@@ -78,6 +80,7 @@ const TokensTable = (tokensData) => {
     refresh,
     updateBillingMode,
     billingModes,
+    onShowIpUsage,
   ]);
 
   // Handle compact mode by removing fixed positioning

@@ -29,7 +29,8 @@ logs/
 # Node / Vite web assets
 node_modules/
 web/node_modules/
-web/dist/
+web/dist/*
+!web/dist/index.html
 web/.cache/
 
 # Env

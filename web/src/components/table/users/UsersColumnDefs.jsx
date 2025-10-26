@@ -208,6 +208,7 @@ const renderOperations = (
     showDeleteModal,
     showResetPasskeyModal,
     showResetTwoFAModal,
+    showIpUsageModal,
     t,
   },
 ) => {
@@ -279,6 +280,13 @@ const renderOperations = (
       >
         {t('降级')}
       </Button>
+      <Button
+        type='tertiary'
+        size='small'
+        onClick={() => showIpUsageModal(record)}
+      >
+        {t('IP 使用统计')}
+      </Button>
       <Dropdown menu={moreMenu} trigger='click' position='bottomRight'>
         <Button type='tertiary' size='small' icon={<IconMore />} />
       </Dropdown>
@@ -299,6 +307,7 @@ export const getUsersColumns = ({
   showDeleteModal,
   showResetPasskeyModal,
   showResetTwoFAModal,
+  showIpUsageModal,
 }) => {
   return [
     {
@@ -355,6 +364,7 @@ export const getUsersColumns = ({
           showDeleteModal,
           showResetPasskeyModal,
           showResetTwoFAModal,
+          showIpUsageModal,
           t,
         }),
     },

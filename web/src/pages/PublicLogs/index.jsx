@@ -28,6 +28,7 @@ import {
   Table,
   Tag,
   Typography,
+  Statistic,
 } from '@douyinfe/semi-ui';
 import { useTranslation } from 'react-i18next';
 import { API, timestamp2string } from '../../helpers';
@@ -45,6 +46,12 @@ const PublicLogsPage = () => {
   const [filters, setFilters] = useState({ window: '24h', model: '', search: '' });
   const [models, setModels] = useState([]);
   const [exporting, setExporting] = useState(false);
+  const [metrics, setMetrics] = useState({
+    total_requests: 0,
+    total_tokens: 0,
+    success_count: 0,
+    failed_count: 0,
+  });
 
   const publicLogsEnabled = config?.public_logs?.enabled;
 
@@ -79,13 +86,21 @@ const PublicLogsPage = () => {
         const payload = res.data.data || {};
         setLogs(Array.isArray(payload.items) ? payload.items : []);
         setTotal(payload.total || 0);
+        setMetrics({
+          total_requests: payload.metrics?.total_requests || 0,
+          total_tokens: payload.metrics?.total_tokens || 0,
+          success_count: payload.metrics?.success_count || 0,
+          failed_count: payload.metrics?.failed_count || 0,
+        });
       } else {
         setLogs([]);
         setTotal(0);
+        setMetrics({ total_requests: 0, total_tokens: 0, success_count: 0, failed_count: 0 });
       }
     } catch (error) {
       setLogs([]);
       setTotal(0);
+      setMetrics({ total_requests: 0, total_tokens: 0, success_count: 0, failed_count: 0 });
     } finally {
       setLoading(false);
     }
@@ -113,6 +128,20 @@ const PublicLogsPage = () => {
         width: 160,
       },
       {
+        title: t('令牌'),
+        dataIndex: 'token_label',
+        render: (_, record) => {
+          if (record.token_name) {
+            return (
+              <Typography.Text tooltip={record.token_name}>
+                {record.token_label || t('匿名令牌')}
+              </Typography.Text>
+            );
+          }
+          return <Typography.Text>{record.subject_label || t('匿名令牌')}</Typography.Text>;
+        },
+      },
+      {
         title: t('匿名用户'),
         dataIndex: 'subject_label',
         render: (text) => <Typography.Text>{text || t('匿名用户')}</Typography.Text>,
@@ -125,6 +154,7 @@ const PublicLogsPage = () => {
       {
         title: t('Tokens'),
         dataIndex: 'tokens',
+        render: (value) => <Typography.Text>{value ? value.toLocaleString() : 0}</Typography.Text>,
       },
       {
         title: t('请求状态'),
@@ -221,8 +251,11 @@ const PublicLogsPage = () => {
               field='window'
               label={t('时间范围')}
               optionList={[
+                { label: t('1小时'), value: '1h' },
                 { label: t('24小时'), value: '24h' },
                 { label: t('7天'), value: '7d' },
+                { label: t('30天'), value: '30d' },
+                { label: t('365天'), value: '365d' },
                 { label: t('全部'), value: 'all_time' },
               ]}
               style={{ width: 160 }}
@@ -249,6 +282,32 @@ const PublicLogsPage = () => {
             </Button>
           </Space>
         </Form>
+      </Card>
+
+      <Card bordered>
+        <Space wrap align='center' className='w-full justify-between gap-4'>
+          <Statistic
+            title={t('总请求数')}
+            value={metrics.total_requests}
+            formatter={(value) => Number(value).toLocaleString()}
+          />
+          <Statistic
+            title={t('成功请求')}
+            value={metrics.success_count}
+            formatter={(value) => Number(value).toLocaleString()}
+          />
+          <Statistic
+            title={t('失败请求')}
+            value={metrics.failed_count}
+            valueStyle={{ color: 'var(--semi-color-danger)' }}
+            formatter={(value) => Number(value).toLocaleString()}
+          />
+          <Statistic
+            title={t('总Tokens')}
+            value={metrics.total_tokens}
+            formatter={(value) => Number(value).toLocaleString()}
+          />
+        </Space>
       </Card>
 
       <Card bordered>
