@@ -18,16 +18,19 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Button, Card, Empty, Space, Table, Tooltip, Typography } from '@douyinfe/semi-ui';
+import { Button, Card, Empty, Space, Table, Typography } from '@douyinfe/semi-ui';
 import { Segmented } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { API, isAdmin } from '../../helpers';
 import { useBillingFeatures } from '../../hooks/billing/useBillingFeatures';
 
 const WINDOW_PRESETS = [
-  { labelKey: '全部', value: 'all_time' },
+  { labelKey: '1小时', value: '1h' },
   { labelKey: '24小时', value: '24h' },
   { labelKey: '7天', value: '7d' },
+  { labelKey: '30天', value: '30d' },
+  { labelKey: '365天', value: '365d' },
+  { labelKey: '全部', value: 'all_time' },
 ];
 
 const LeaderboardPage = () => {
@@ -72,7 +75,7 @@ const LeaderboardPage = () => {
   }, [fetchLeaderboard, billingEnabled, error]);
 
   const columns = useMemo(() => {
-    const base = [
+    return [
       {
         title: t('排名'),
         dataIndex: 'rank',
@@ -80,47 +83,34 @@ const LeaderboardPage = () => {
         render: (text, _, index) => text ?? index + 1,
       },
       {
-        title: t('用户'),
-        dataIndex: 'subject_label',
-        render: (text) => <Typography.Text>{text || t('匿名用户')}</Typography.Text>,
+        title: t('模型'),
+        dataIndex: 'model',
+        render: (text) => <Typography.Text code>{text}</Typography.Text>,
       },
       {
         title: t('请求数'),
         dataIndex: 'request_count',
         sorter: true,
+        render: (value) => Number(value || 0).toLocaleString(),
       },
       {
-        title: t('消耗 Tokens'),
+        title: t('总Tokens'),
         dataIndex: 'token_count',
         sorter: true,
+        render: (value) => Number(value || 0).toLocaleString(),
+      },
+      {
+        title: t('唯一用户数'),
+        dataIndex: 'unique_users',
+        render: (value) => Number(value || 0).toLocaleString(),
+      },
+      {
+        title: t('唯一令牌数'),
+        dataIndex: 'unique_tokens',
+        render: (value) => Number(value || 0).toLocaleString(),
       },
     ];
-
-    if (admin) {
-      base.push({
-        title: t('标记数'),
-        dataIndex: 'flagged_count',
-        render: (value) => {
-          if (!value) {
-            return value ?? 0;
-          }
-          return (
-            <Tooltip content={t('治理标记不计入排名，仅用于审计。')}>
-              <Typography.Text type='warning'>{value}</Typography.Text>
-            </Tooltip>
-          );
-        },
-      });
-    }
-
-    base.push({
-      title: t('最近活跃时间'),
-      dataIndex: 'last_activity',
-      render: (text) => (text ? new Date(text).toLocaleString() : '-'),
-    });
-
-    return base;
-  }, [admin, t]);
+  }, [t]);
 
   const exportUrl = useMemo(() => {
     if (!admin) {
@@ -171,9 +161,9 @@ const LeaderboardPage = () => {
           className='w-full justify-between flex-col md:flex-row'
         >
           <div>
-            <Typography.Title heading={4}>{t('使用排行榜')}</Typography.Title>
+            <Typography.Title heading={4}>{t('模型请求排行榜')}</Typography.Title>
             <Typography.Text type='tertiary'>
-              {t('查看指定时间窗口的使用量和令牌消耗情况。')}
+              {t('查看不同时间窗口内各模型的请求次数与消耗情况。')}
             </Typography.Text>
           </div>
           <Space align='center'>

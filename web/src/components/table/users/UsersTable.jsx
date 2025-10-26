@@ -17,7 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Empty } from '@douyinfe/semi-ui';
 import CardTable from '../../common/ui/CardTable';
 import {
@@ -31,6 +31,8 @@ import EnableDisableUserModal from './modals/EnableDisableUserModal';
 import DeleteUserModal from './modals/DeleteUserModal';
 import ResetPasskeyModal from './modals/ResetPasskeyModal';
 import ResetTwoFAModal from './modals/ResetTwoFAModal';
+import IpUsageModal from '../../common/ui/IpUsageModal';
+import { API } from '../../../helpers';
 
 const UsersTable = (usersData) => {
   const {
@@ -61,6 +63,11 @@ const UsersTable = (usersData) => {
   const [enableDisableAction, setEnableDisableAction] = useState('');
   const [showResetPasskeyModal, setShowResetPasskeyModal] = useState(false);
   const [showResetTwoFAModal, setShowResetTwoFAModal] = useState(false);
+  const [ipUsageVisible, setIpUsageVisible] = useState(false);
+  const [ipUsageWindow, setIpUsageWindow] = useState('30d');
+  const [ipUsageLoading, setIpUsageLoading] = useState(false);
+  const [ipUsageData, setIpUsageData] = useState(null);
+  const [ipUsageUser, setIpUsageUser] = useState(null);
 
   // Modal handlers
   const showPromoteUserModal = (user) => {
@@ -93,6 +100,55 @@ const UsersTable = (usersData) => {
     setModalUser(user);
     setShowResetTwoFAModal(true);
   };
+
+  const fetchUserIpUsage = useCallback(
+    async (userId, windowValue) => {
+      setIpUsageLoading(true);
+      try {
+        const res = await API.get(`/api/log/ip-usage/user/${userId}`, {
+          params: { window: windowValue },
+          skipErrorHandler: true,
+        });
+        if (res?.data?.success) {
+          setIpUsageData(res.data.data || null);
+        } else {
+          setIpUsageData(null);
+        }
+      } catch (error) {
+        setIpUsageData(null);
+      } finally {
+        setIpUsageLoading(false);
+      }
+    },
+    [],
+  );
+
+  const showIpUsageModal = useCallback(
+    (user) => {
+      if (!user?.id) return;
+      setIpUsageUser(user);
+      setIpUsageWindow('30d');
+      setIpUsageVisible(true);
+      fetchUserIpUsage(user.id, '30d');
+    },
+    [fetchUserIpUsage],
+  );
+
+  const handleIpWindowChange = useCallback(
+    (value) => {
+      setIpUsageWindow(value);
+      if (ipUsageUser?.id) {
+        fetchUserIpUsage(ipUsageUser.id, value);
+      }
+    },
+    [ipUsageUser, fetchUserIpUsage],
+  );
+
+  const handleCloseIpModal = useCallback(() => {
+    setIpUsageVisible(false);
+    setIpUsageUser(null);
+    setIpUsageData(null);
+  }, []);
 
   // Modal confirm handlers
   const handlePromoteConfirm = () => {
@@ -132,6 +188,7 @@ const UsersTable = (usersData) => {
       showDeleteModal: showDeleteUserModal,
       showResetPasskeyModal: showResetPasskeyUserModal,
       showResetTwoFAModal: showResetTwoFAUserModal,
+      showIpUsageModal,
     });
   }, [
     t,
@@ -143,6 +200,7 @@ const UsersTable = (usersData) => {
     showDeleteUserModal,
     showResetPasskeyUserModal,
     showResetTwoFAUserModal,
+    showIpUsageModal,
   ]);
 
   // Handle compact mode by removing fixed positioning
@@ -240,6 +298,17 @@ const UsersTable = (usersData) => {
         onCancel={() => setShowResetTwoFAModal(false)}
         onConfirm={handleResetTwoFAConfirm}
         user={modalUser}
+        t={t}
+      />
+
+      <IpUsageModal
+        visible={ipUsageVisible}
+        title={t('用户 IP 使用情况')}
+        data={ipUsageData}
+        loading={ipUsageLoading}
+        windowValue={ipUsageWindow}
+        onWindowChange={handleIpWindowChange}
+        onClose={handleCloseIpModal}
         t={t}
       />
     </>

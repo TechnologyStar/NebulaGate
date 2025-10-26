@@ -17,7 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Notification,
   Button,
@@ -41,6 +41,7 @@ import EditTokenModal from './modals/EditTokenModal';
 import { useTokensData } from '../../../hooks/tokens/useTokensData';
 import { useIsMobile } from '../../../hooks/common/useIsMobile';
 import { createCardProPagination } from '../../../helpers/utils';
+import IpUsageModal from '../../common/ui/IpUsageModal';
 
 function TokensPage() {
   // Define the function first, then pass it into the hook to avoid TDZ errors
@@ -60,6 +61,11 @@ function TokensPage() {
   const [selectedModel, setSelectedModel] = useState('');
   const [fluentNoticeOpen, setFluentNoticeOpen] = useState(false);
   const [prefillKey, setPrefillKey] = useState('');
+  const [ipUsageVisible, setIpUsageVisible] = useState(false);
+  const [ipUsageWindow, setIpUsageWindow] = useState('30d');
+  const [ipUsageLoading, setIpUsageLoading] = useState(false);
+  const [ipUsageData, setIpUsageData] = useState(null);
+  const [ipUsageTarget, setIpUsageTarget] = useState(null);
 
   // Keep latest data for handlers inside notifications
   useEffect(() => {
@@ -182,6 +188,55 @@ function TokensPage() {
   }
   // assign after definition so hook callback can call it safely
   openFluentNotificationRef.current = openFluentNotification;
+
+  const fetchTokenIpUsage = useCallback(
+    async (tokenId, windowValue) => {
+      setIpUsageLoading(true);
+      try {
+        const res = await API.get(`/api/log/ip-usage/token/${tokenId}`, {
+          params: { window: windowValue },
+          skipErrorHandler: true,
+        });
+        if (res?.data?.success) {
+          setIpUsageData(res.data.data || null);
+        } else {
+          setIpUsageData(null);
+        }
+      } catch (error) {
+        setIpUsageData(null);
+      } finally {
+        setIpUsageLoading(false);
+      }
+    },
+    [],
+  );
+
+  const handleShowIpUsage = useCallback(
+    (token) => {
+      if (!token?.id) return;
+      setIpUsageTarget(token);
+      setIpUsageWindow('30d');
+      setIpUsageVisible(true);
+      fetchTokenIpUsage(token.id, '30d');
+    },
+    [fetchTokenIpUsage],
+  );
+
+  const handleIpWindowChange = useCallback(
+    (value) => {
+      setIpUsageWindow(value);
+      if (ipUsageTarget?.id) {
+        fetchTokenIpUsage(ipUsageTarget.id, value);
+      }
+    },
+    [ipUsageTarget, fetchTokenIpUsage],
+  );
+
+  const handleCloseIpUsage = useCallback(() => {
+    setIpUsageVisible(false);
+    setIpUsageTarget(null);
+    setIpUsageData(null);
+  }, []);
 
   // Prefill to Fluent handler
   const handlePrefillToFluent = () => {
@@ -363,6 +418,17 @@ function TokensPage() {
         handleClose={closeEdit}
       />
 
+      <IpUsageModal
+        visible={ipUsageVisible}
+        title={tokensData.t('令牌 IP 使用情况')}
+        data={ipUsageData}
+        loading={ipUsageLoading}
+        windowValue={ipUsageWindow}
+        onWindowChange={handleIpWindowChange}
+        onClose={handleCloseIpUsage}
+        t={tokensData.t}
+      />
+
       <CardPro
         type='type1'
         descriptionArea={
@@ -407,7 +473,10 @@ function TokensPage() {
         })}
         t={tokensData.t}
       >
-        <TokensTable {...tokensData} />
+        <TokensTable
+          {...tokensData}
+          onShowIpUsage={handleShowIpUsage}
+        />
       </CardPro>
     </>
   );

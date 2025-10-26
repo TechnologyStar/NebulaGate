@@ -45,6 +45,11 @@ func SetApiRouter(router *gin.Engine) {
         apiRouter.GET("/option/features", controller.GetFeatureOptions)
         apiRouter.PUT("/option/features", middleware.RootAuth(), controller.UpdateFeatureOptions)
 
+        apiRouter.GET("/public/logs", controller.GetPublicLogs)
+        apiRouter.GET("/public/logs/models", controller.GetPublicLogModels)
+        apiRouter.GET("/public/logs/export", controller.ExportPublicLogs)
+        apiRouter.GET("/public/leaderboard", controller.GetPublicLeaderboard)
+
         // Universal secure verification routes
         apiRouter.POST("/verify", middleware.UserAuth(), middleware.CriticalRateLimit(), controller.UniversalVerify)
         apiRouter.GET("/verify/status", middleware.UserAuth(), controller.GetVerificationStatus)
@@ -203,6 +208,20 @@ func SetApiRouter(router *gin.Engine) {
             {
                 voucherUserRoute.POST("/redeem", controller.RedeemVoucher)
             }
+        }
+
+        leaderboardAdmin := apiRouter.Group("/leaderboard")
+        leaderboardAdmin.Use(middleware.AdminAuth())
+        {
+            leaderboardAdmin.GET("/", controller.GetAdminLeaderboard)
+            leaderboardAdmin.GET("/export", controller.ExportAdminLeaderboard)
+        }
+
+        logAdmin := apiRouter.Group("/log")
+        logAdmin.Use(middleware.AdminAuth())
+        {
+            logAdmin.GET("/ip-usage/token/:id", controller.GetTokenIPUsage)
+            logAdmin.GET("/ip-usage/user/:id", controller.GetUserIPUsage)
         }
 
         usageRoute := apiRouter.Group("/usage")
