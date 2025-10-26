@@ -3,43 +3,40 @@ FROM oven/bun:1.1.29-alpine AS webbuilder
 WORKDIR /app/web
 ENV BUN_ENABLE_TELEMETRY=0
 
-# 许多前端依赖在 Alpine/musl 需要原生编译工具，否则 bun/vite 构建会直接失败
-RUN apk add --no-cache git python3 make g++ bash
+# Tooling for native addons + glibc compat for Alpine
+RUN apk add --no-cache git python3 make g++ bash libc6-compat
 
-# 为了稳妥，直接复制整个 web 目录（牺牲一点缓存命中，换取对缺失 lock 文件的兼容）
+# (Better cache) install deps first if lockfile exists
+COPY web/package.json web/bun.lockb* ./
+
+# If you always have a lock, keep only the frozen path; otherwise fall back.
+RUN if [ -f bun.lockb ]; then bun install --frozen-lockfile; else bun install; fi
+
+# Now copy the rest of the sources
 COPY web/ ./
 
-# 有 bun.lockb 就用 --frozen-lockfile；没有就普通安装
-RUN set -eux; \
-    if [ -f bun.lockb ]; then \
-      bun install --frozen-lockfile; \
-    else \
-      bun install; \
-    fi
-
-# 注入版本：优先 --build-arg，再尝试 /app/VERSION，最后回落 dev
-# 不强制 COPY VERSION（避免流水线里没有该文件导致构建直接失败）
-ARG VITE_REACT_APP_VERSION
+# Build args / envs — default to dev if not provided
+ARG VITE_REACT_APP_VERSION=dev
 ENV VITE_REACT_APP_VERSION=${VITE_REACT_APP_VERSION}
 
-RUN set -eux; \
-  echo "Bun version: $(bun --version)"; \
-  FINAL="${VITE_REACT_APP_VERSION:-}"; \
-  if [ -z "${FINAL:-}" ] && [ -f /app/VERSION ]; then FINAL="$(cat /app/VERSION || true)"; fi; \
-  : "${FINAL:=dev}"; \
-  export VITE_REACT_APP_VERSION="$FINAL"; \
-  echo "VITE_REACT_APP_VERSION=${VITE_REACT_APP_VERSION}"; \
-  # 避免因内存不足引起的构建中断（按 CI 机器内存调整）
-  export NODE_OPTIONS="--max-old-space-size=2048"; \
-  # 打印依赖树帮助排错（不影响构建）
-  bun pm ls || true; \
-  # 直接调用 vite，打开详细日志，遇到真实错误能第一时间看到
-  if bun x vite --version >/dev/null 2>&1; then \
-    bun x vite build --logLevel info; \
-  else \
-    # 如果你的脚本里有 "build": "vite build"，这两行也能跑
-    bun run build --verbose || bun run build; \
-  fi
+# Print versions and dependency tree explicitly
+RUN echo "Bun version:" && bun --version
+RUN bun pm ls || true
+
+# Avoid OOMs in CI; tune as needed
+ENV NODE_OPTIONS="--max-old-space-size=2048"
+
+# Prefer your package.json script; otherwise use vite directly
+# (split into separate steps so an error shows the real message)
+RUN if bun x vite --version >/dev/null 2>&1; then \
+      echo "vite found via bunx"; \
+    else \
+      echo "vite not found via bunx; will rely on package.json scripts"; \
+    fi
+
+RUN --mount=type=cache,target=/root/.bun \
+    --mount=type=cache,target=/app/web/node_modules \
+    (bun run build --verbose || bun run build || bun x vite build --logLevel info)
 
 # ==================== Stage 2: Go Builder（稳定版 Golang） ====================
 # go.mod 指定了 Go 1.25.1；如果基础镜像版本过低，`go mod download` 会直接报错
