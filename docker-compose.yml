@@ -1,61 +1,84 @@
-# ==================== Stage 1: Web (Bun + Vite) ====================
-FROM oven/bun:1.1-alpine AS webbuilder
-WORKDIR /app/web
-ENV BUN_ENABLE_TELEMETRY=0
+# New-API Docker Compose Configuration
+# 
+# Quick Start:
+#   1. docker-compose up -d
+#   2. Access at http://localhost:3000
+#
+# Using MySQL instead of PostgreSQL:
+#   1. Comment out the postgres service and SQL_DSN line 15
+#   2. Uncomment the mysql service and SQL_DSN line 16
+#   3. Uncomment mysql in depends_on (line 28)
+#   4. Uncomment mysql_data in volumes section (line 64)
+#
+# ⚠️  IMPORTANT: Change all default passwords before deploying to production!
 
-# 先复制清单文件并安装依赖（最大化缓存命中）
-COPY web/package.json web/bun.lockb* ./
-RUN if [ -f bun.lockb ]; then \
-      bun install --frozen-lockfile; \
-    else \
-      rm -f bun.lock; \
-      bun install; \
-    fi
+version: '3.4' # For compatibility with older Docker versions
 
-# 再复制源码
-COPY web/ ./
+services:
+  new-api:
+    image: calciumion/new-api:latest
+    container_name: new-api
+    restart: always
+    command: --log-dir /app/logs
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/data
+      - ./logs:/app/logs
+    environment:
+      - SQL_DSN=postgresql://root:123456@postgres:5432/new-api # ⚠️ IMPORTANT: Change the password in production!
+#      - SQL_DSN=root:123456@tcp(mysql:3306)/new-api  # Point to the mysql service, uncomment if using MySQL
+      - REDIS_CONN_STRING=redis://redis
+      - TZ=Asia/Shanghai
+      - ERROR_LOG_ENABLED=true # 是否启用错误日志记录 (Whether to enable error log recording)
+      - BATCH_UPDATE_ENABLED=true  # 是否启用批量更新 (Whether to enable batch update)
+#      - STREAMING_TIMEOUT=300  # 流模式无响应超时时间，单位秒，默认120秒，如果出现空补全可以尝试改为更大值 （Streaming timeout in seconds, default is 120s. Increase if experiencing empty completions）
+#      - SESSION_SECRET=random_string  # 多机部署时设置，必须修改这个随机字符串！！ （multi-node deployment, set this to a random string!!!!!!!）
+#      - SYNC_FREQUENCY=60  # Uncomment if regular database syncing is needed
+#      - GOOGLE_ANALYTICS_ID=G-XXXXXXXXXX  # Google Analytics 的测量 ID (Google Analytics Measurement ID)
+#      - UMAMI_WEBSITE_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx  # Umami 网站 ID (Umami Website ID)
+#      - UMAMI_SCRIPT_URL=https://analytics.umami.is/script.js  # Umami 脚本 URL，默认为官方地址 (Umami Script URL, defaults to official URL)
 
-# 如仓库根目录存在 VERSION，则复制（若没有此文件，请删除下一行）
-COPY VERSION /app/VERSION
+    depends_on:
+      - redis
+      - postgres
+#      - mysql  # Uncomment if using MySQL
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:3000/api/status | grep -o '\"success\":\\s*true' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
-# 版本注入：--build-arg > /app/VERSION > dev
-ARG VITE_REACT_APP_VERSION
-RUN set -eux; \
-  echo "Bun version: $(bun --version)"; \
-  FINAL_VERSION="$(cat /app/VERSION 2>/dev/null || true)"; \
-  if [ -n "${VITE_REACT_APP_VERSION:-}" ]; then FINAL_VERSION="$VITE_REACT_APP_VERSION"; fi; \
-  if [ -z "${FINAL_VERSION:-}" ]; then FINAL_VERSION="dev"; fi; \
-  export VITE_REACT_APP_VERSION="$FINAL_VERSION"; \
-  echo "VITE_REACT_APP_VERSION=${VITE_REACT_APP_VERSION}"; \
-  bun run build
+  redis:
+    image: redis:latest
+    container_name: redis
+    restart: always
 
-# ==================== Stage 2: Go Builder (Go 1.25) ====================
-FROM golang:1.25-alpine AS gobuilder
-WORKDIR /build
-ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: 123456  # ⚠️ IMPORTANT: Change this password in production!
+      POSTGRES_DB: new-api
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+#    ports:
+#      - "5432:5432"  # Uncomment if you need to access PostgreSQL from outside Docker
 
-# 先拉 go 依赖（利用缓存）
-COPY go.mod go.sum ./
-RUN go mod download
+#  mysql:
+#    image: mysql:8.2
+#    container_name: mysql
+#    restart: always
+#    environment:
+#      MYSQL_ROOT_PASSWORD: 123456  # ⚠️ IMPORTANT: Change this password in production!
+#      MYSQL_DATABASE: new-api
+#    volumes:
+#      - mysql_data:/var/lib/mysql
+#    ports:
+#      - "3306:3306"  # Uncomment if you need to access MySQL from outside Docker
 
-# 拷贝后端源码 + 前端产物
-COPY . .
-COPY --from=webbuilder /app/web/dist ./web/dist
-
-# 构建二进制（如果 main 不在仓库根目录，把 "." 改成主程序路径）
-RUN go build -trimpath -ldflags "-s -w" -o /out/nebulagate .
-
-# ==================== Stage 3: Runtime ====================
-FROM alpine:3.20
-WORKDIR /app
-ENV TZ=America/Chicago
-RUN apk add --no-cache ca-certificates tzdata && update-ca-certificates
-
-# 拷贝二进制与前端静态资源
-COPY --from=gobuilder  /out/nebulagate /app/nebulagate
-COPY --from=webbuilder /app/web/dist  /app/public
-
-# 数据工作目录（挂卷）
-WORKDIR /data
-EXPOSE 3000
-ENTRYPOINT ["/app/nebulagate"]
+volumes:
+  pg_data:
+#  mysql_data:
