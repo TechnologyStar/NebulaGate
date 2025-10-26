@@ -29,7 +29,7 @@ RUN echo "Bun version:" && bun --version
 RUN bun pm ls || true
 
 # 避免因内存不足导致构建中断（按 CI 机器内存大小调整）
-ENV NODE_OPTIONS="--max-old-space-size=2048"
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 
 # 构建（优先使用 package.json 的 build 脚本，不行再直接用 vite）
 RUN (bun run build --verbose || bun run build || bun x vite build --logLevel info)

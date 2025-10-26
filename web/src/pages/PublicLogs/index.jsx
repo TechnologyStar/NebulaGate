@@ -28,7 +28,6 @@ import {
   Table,
   Tag,
   Typography,
-  Statistic,
 } from '@douyinfe/semi-ui';
 import { useTranslation } from 'react-i18next';
 import { API, timestamp2string } from '../../helpers';
@@ -52,6 +51,16 @@ const PublicLogsPage = () => {
     success_count: 0,
     failed_count: 0,
   });
+
+  const metricItems = useMemo(
+    () => [
+      { title: t('总请求数'), value: metrics.total_requests },
+      { title: t('成功请求'), value: metrics.success_count },
+      { title: t('失败请求'), value: metrics.failed_count, danger: true },
+      { title: t('总Tokens'), value: metrics.total_tokens },
+    ],
+    [metrics, t],
+  );
 
   const publicLogsEnabled = config?.public_logs?.enabled;
 
@@ -285,28 +294,31 @@ const PublicLogsPage = () => {
       </Card>
 
       <Card bordered>
-        <Space wrap align='center' className='w-full justify-between gap-4'>
-          <Statistic
-            title={t('总请求数')}
-            value={metrics.total_requests}
-            formatter={(value) => Number(value).toLocaleString()}
-          />
-          <Statistic
-            title={t('成功请求')}
-            value={metrics.success_count}
-            formatter={(value) => Number(value).toLocaleString()}
-          />
-          <Statistic
-            title={t('失败请求')}
-            value={metrics.failed_count}
-            valueStyle={{ color: 'var(--semi-color-danger)' }}
-            formatter={(value) => Number(value).toLocaleString()}
-          />
-          <Statistic
-            title={t('总Tokens')}
-            value={metrics.total_tokens}
-            formatter={(value) => Number(value).toLocaleString()}
-          />
+        <Space wrap spacing='medium'>
+          {metricItems.map((item) => (
+            <Card
+              key={item.title}
+              bodyStyle={{ padding: '16px' }}
+              style={{
+                minWidth: 160,
+                borderRadius: 12,
+                border: '1px solid var(--semi-color-border)',
+              }}
+            >
+              <Space direction='vertical' spacing={4}>
+                <Typography.Text type='tertiary'>{item.title}</Typography.Text>
+                <Typography.Title
+                  heading={4}
+                  style={{
+                    margin: 0,
+                    color: item.danger ? 'var(--semi-color-danger)' : undefined,
+                  }}
+                >
+                  {Number(item.value || 0).toLocaleString()}
+                </Typography.Title>
+              </Space>
+            </Card>
+          ))}
         </Space>
       </Card>
 

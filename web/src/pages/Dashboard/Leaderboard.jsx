@@ -35,11 +35,11 @@ const WINDOW_PRESETS = [
 
 const LeaderboardPage = () => {
   const { t } = useTranslation();
-  const { config, loading: configLoading, error, refresh } = useBillingFeatures();
+  const { config, loading: configLoading, error: billingError, refresh } = useBillingFeatures();
   const [activeWindow, setActiveWindow] = useState('24h');
   const [loading, setLoading] = useState(false);
   const [entries, setEntries] = useState([]);
-  const [error, setError] = useState(null);
+  const [leaderboardError, setLeaderboardError] = useState(null);
   const [admin] = useState(() => isAdmin());
 
   const billingEnabled = config?.billing?.enabled;
@@ -54,25 +54,25 @@ const LeaderboardPage = () => {
       });
       if (res?.data?.success) {
         setEntries(Array.isArray(res.data.data) ? res.data.data : []);
-        setError(null);
+        setLeaderboardError(null);
       } else {
         setEntries([]);
-        setError(res?.data?.message || t('排行榜暂不可用'));
+        setLeaderboardError(res?.data?.message || t('排行榜暂不可用'));
       }
     } catch (err) {
       setEntries([]);
-      setError(err?.response?.data?.message || err?.message || t('排行榜暂不可用'));
+      setLeaderboardError(err?.response?.data?.message || err?.message || t('排行榜暂不可用'));
     } finally {
       setLoading(false);
     }
   }, [activeWindow, admin, t]);
 
   useEffect(() => {
-    if (!billingEnabled || error) {
+    if (!billingEnabled || billingError) {
       return;
     }
     fetchLeaderboard();
-  }, [fetchLeaderboard, billingEnabled, error]);
+  }, [fetchLeaderboard, billingEnabled, billingError]);
 
   const columns = useMemo(() => {
     return [
@@ -128,7 +128,7 @@ const LeaderboardPage = () => {
     );
   }
 
-  if (error) {
+  if (billingError) {
     return (
       <div className='mt-[60px] px-2 pb-6'>
         <Card bordered>
@@ -192,8 +192,8 @@ const LeaderboardPage = () => {
       </Card>
 
       <Card bordered>
-        {error ? (
-          <Empty description={error} />
+        {leaderboardError ? (
+          <Empty description={leaderboardError} />
         ) : (
           <Table
             loading={loading}
