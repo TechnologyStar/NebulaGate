@@ -193,7 +193,7 @@ func RedeemVoucher(code string, userId int, username string) (*VoucherRedeemResu
         }
 
         if batch.GrantType == common.VoucherGrantTypeCredit {
-            err = model.IncreaseUserQuota(userId, int(batch.CreditAmount))
+            err = model.IncreaseUserQuota(userId, int(batch.CreditAmount), false)
             if err != nil {
                 return fmt.Errorf("failed to increase user quota: %w", err)
             }
