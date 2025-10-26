@@ -42,8 +42,8 @@ RUN set -eux; \
   fi
 
 # ==================== Stage 2: Go Builder（稳定版 Golang） ====================
-# 你之前用的是 golang:1.25-alpine，目前更稳的是 1.23 系列（除非你确实需要 1.25）
-FROM golang:1.23-alpine AS gobuilder
+# go.mod 指定了 Go 1.25.1；如果基础镜像版本过低，`go mod download` 会直接报错
+FROM golang:1.25.1-alpine AS gobuilder
 WORKDIR /build
 ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64
 
