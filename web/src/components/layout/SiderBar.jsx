@@ -50,6 +50,8 @@ const routerMap = {
   models: '/console/models',
   playground: '/console/playground',
   personal: '/console/personal',
+  checkin: '/console/checkin',
+  lottery: '/console/lottery',
 };
 
 const SiderBar = ({ onNavigate = () => {} }) => {
@@ -134,6 +136,16 @@ const SiderBar = ({ onNavigate = () => {} }) => {
         text: t('钱包管理'),
         itemKey: 'topup',
         to: '/topup',
+      },
+      {
+        text: t('每日签到'),
+        itemKey: 'checkin',
+        to: '/checkin',
+      },
+      {
+        text: t('幸运抽奖'),
+        itemKey: 'lottery',
+        to: '/lottery',
       },
       {
         text: t('兑换卡券'),

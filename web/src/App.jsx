@@ -49,6 +49,8 @@ import PersonalSetting from './components/settings/PersonalSetting';
 import Setup from './pages/Setup';
 import SetupCheck from './components/layout/SetupCheck';
 import VoucherRedeem from './pages/Setting/VoucherRedeem';
+import CheckIn from './pages/CheckIn';
+import Lottery from './pages/Lottery';
 
 const Home = lazy(() => import('./pages/Home'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -272,6 +274,26 @@ function App() {
             <PrivateRoute>
               <Suspense fallback={<Loading></Loading>} key={location.pathname}>
                 <TopUp />
+              </Suspense>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path='/console/checkin'
+          element={
+            <PrivateRoute>
+              <Suspense fallback={<Loading></Loading>} key={location.pathname}>
+                <CheckIn />
+              </Suspense>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path='/console/lottery'
+          element={
+            <PrivateRoute>
+              <Suspense fallback={<Loading></Loading>} key={location.pathname}>
+                <Lottery />
               </Suspense>
             </PrivateRoute>
           }
