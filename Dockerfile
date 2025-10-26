@@ -1,37 +1,53 @@
-FROM oven/bun:latest AS builder
+# ==================== Stage 1: Web (Bun + Vite) ====================
+FROM oven/bun:1.1-alpine AS webbuilder
+WORKDIR /app/web
+ENV BUN_ENABLE_TELEMETRY=0
 
+# 复制整个 web 目录，避免可选文件 COPY 失败
+COPY web/ .
+
+# 有 bun.lockb 就严格安装；否则删除误命名的 bun.lock 再普通安装
+RUN if [ -f bun.lockb ]; then \
+      bun install --frozen-lockfile; \
+    else \
+      rm -f bun.lock; \
+      bun install; \
+    fi
+
+# 版本注入（可选；没有 VERSION 文件就回退为 dev）
+COPY VERSION /app/VERSION
+ARG VITE_REACT_APP_VERSION=dev
+ENV VITE_REACT_APP_VERSION=${VITE_REACT_APP_VERSION}
+RUN export VITE_REACT_APP_VERSION="$(cat /app/VERSION 2>/dev/null || echo ${VITE_REACT_APP_VERSION})" \
+ && bun run build
+
+# ==================== Stage 2: Go Builder (Go 1.25) ====================
+FROM golang:1.25-alpine AS gobuilder
 WORKDIR /build
-COPY web/package.json .
-COPY web/bun.lock .
-RUN bun install
-COPY ./web .
-COPY ./VERSION .
-RUN DISABLE_ESLINT_PLUGIN='true' VITE_REACT_APP_VERSION=$(cat VERSION) bun run build
+ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64
 
-FROM golang:alpine AS builder2
-ENV GO111MODULE=on CGO_ENABLED=0
-
-ARG TARGETOS
-ARG TARGETARCH
-ENV GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH:-amd64}
-
-
-WORKDIR /build
-
-ADD go.mod go.sum ./
+# 先拉 go 依赖（利用缓存）
+COPY go.mod go.sum ./
 RUN go mod download
 
+# 拷贝后端源码 + 前端产物
 COPY . .
-COPY --from=builder /build/dist ./web/dist
-RUN go build -ldflags "-s -w -X 'github.com/QuantumNous/new-api/common.Version=$(cat VERSION)'" -o new-api
+COPY --from=webbuilder /app/web/dist ./web/dist
 
-FROM alpine
+# 构建二进制（如果 main 不在仓库根目录，把 "." 改成主程序路径）
+RUN go build -trimpath -ldflags "-s -w" -o /out/nebulagate .
 
-RUN apk upgrade --no-cache \
-    && apk add --no-cache ca-certificates tzdata ffmpeg \
-    && update-ca-certificates
+# ==================== Stage 3: Runtime ====================
+FROM alpine:3.20
+WORKDIR /app
+ENV TZ=America/Chicago
+RUN apk add --no-cache ca-certificates tzdata && update-ca-certificates
 
-COPY --from=builder2 /build/new-api /
-EXPOSE 3000
+# 拷贝二进制与前端静态资源
+COPY --from=gobuilder  /out/nebulagate /app/nebulagate
+COPY --from=webbuilder /app/web/dist  /app/public
+
+# 数据工作目录（挂卷）
 WORKDIR /data
-ENTRYPOINT ["/new-api"]
+EXPOSE 3000
+ENTRYPOINT ["/app/nebulagate"]
