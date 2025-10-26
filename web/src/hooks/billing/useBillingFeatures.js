@@ -23,7 +23,7 @@ import { API } from '../../helpers';
 const DEFAULT_CONFIG = {
   billing: { enabled: false, defaultMode: 'balance' },
   governance: { enabled: false },
-  public_logs: { enabled: false },
+  public_logs: { enabled: false, retention_days: 7 },
 };
 
 const FEATURE_SECTIONS = Object.freeze(['billing', 'governance', 'public_logs']);
@@ -70,19 +70,24 @@ const serialiseSections = (sections) => {
 };
 
 const normaliseConfig = (payload = {}) => {
-  return {
-    billing: {
-      enabled: Boolean(payload?.billing?.enabled),
-      defaultMode: payload?.billing?.defaultMode || 'balance',
-    },
-    governance: {
-      enabled: Boolean(payload?.governance?.enabled),
-    },
-    public_logs: {
-      enabled: Boolean(payload?.public_logs?.enabled),
-      retention_days: payload?.public_logs?.retention_days,
-    },
-  };
+  try {
+    return {
+      billing: {
+        enabled: Boolean(payload?.billing?.enabled),
+        defaultMode: payload?.billing?.defaultMode || 'balance',
+      },
+      governance: {
+        enabled: Boolean(payload?.governance?.enabled),
+      },
+      public_logs: {
+        enabled: Boolean(payload?.public_logs?.enabled),
+        retention_days: Number(payload?.public_logs?.retention_days) || 7,
+      },
+    };
+  } catch (error) {
+    console.error('Failed to normalize config:', error);
+    return DEFAULT_CONFIG;
+  }
 };
 
 export const useBillingFeatures = () => {
@@ -94,6 +99,7 @@ export const useBillingFeatures = () => {
 
   const fetchConfig = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await API.get('/api/option/features', {
         params: { sections: requestSections },
@@ -107,11 +113,35 @@ export const useBillingFeatures = () => {
         throw new Error(res?.data?.message || 'Failed to load configuration');
       }
     } catch (err) {
+      console.error('Failed to fetch billing features config:', err);
       setConfig(DEFAULT_CONFIG);
-      const normalisedError =
-        err instanceof Error
-          ? err
-          : new Error(err?.message || 'Failed to load configuration');
+      let errorMessage = 'Failed to load configuration';
+      
+      if (err?.response?.status === 401) {
+        errorMessage = '未授权访问，请重新登录';
+        try {
+          localStorage.removeItem('user');
+        } catch (storageError) {
+          console.warn('Failed to clear user session:', storageError);
+        }
+        window.location.href = '/login?expired=true';
+        return;
+      } else if (err?.response?.status === 403) {
+        errorMessage = '权限不足，仅管理员可访问此页面';
+        window.location.href = '/forbidden';
+        return;
+      } else if (err?.response?.status === 404) {
+        errorMessage = 'API接口不存在，请检查后端版本';
+      } else if (err?.response?.status >= 500) {
+        errorMessage = '服务器错误，请稍后再试';
+      } else if (err?.message) {
+        errorMessage = err.message;
+      } else if (err?.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      }
+      
+      const normalisedError = err instanceof Error ? err : new Error(errorMessage);
+      normalisedError.message = errorMessage;
       setError(normalisedError);
     } finally {
       setLoading(false);

@@ -47,12 +47,13 @@ import ChatsSetting from '../../components/settings/ChatsSetting';
 import DrawingSetting from '../../components/settings/DrawingSetting';
 import PaymentSetting from '../../components/settings/PaymentSetting';
 import BillingGovernanceSetting from '../../components/settings/BillingGovernanceSetting';
+import ErrorBoundary from '../../components/common/ErrorBoundary';
 
 const Setting = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const [tabActiveKey, setTabActiveKey] = useState('1');
+  const [tabActiveKey, setTabActiveKey] = useState('operation');
   let panes = [];
 
   if (isRoot()) {
@@ -192,7 +193,11 @@ const Setting = () => {
           >
             {panes.map((pane) => (
               <TabPane itemKey={pane.itemKey} tab={pane.tab} key={pane.itemKey}>
-                {tabActiveKey === pane.itemKey && pane.content}
+                {tabActiveKey === pane.itemKey && (
+                  <ErrorBoundary key={pane.itemKey}>
+                    {pane.content}
+                  </ErrorBoundary>
+                )}
               </TabPane>
             ))}
           </Tabs>
