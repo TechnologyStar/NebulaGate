@@ -41,13 +41,17 @@ const BillingGovernanceSetting = () => {
 
   useEffect(() => {
     if (!loading && !error && config && formRef.current) {
-      formRef.current.setValues({
-        billingEnabled: config?.billing?.enabled ?? false,
-        defaultMode: config?.billing?.defaultMode ?? 'balance',
-        governanceEnabled: config?.governance?.enabled ?? false,
-        publicLogsEnabled: config?.public_logs?.enabled ?? false,
-        publicLogsRetention: config?.public_logs?.retention_days ?? 7,
-      });
+      try {
+        formRef.current.setValues({
+          billingEnabled: config?.billing?.enabled ?? false,
+          defaultMode: config?.billing?.defaultMode ?? 'balance',
+          governanceEnabled: config?.governance?.enabled ?? false,
+          publicLogsEnabled: config?.public_logs?.enabled ?? false,
+          publicLogsRetention: config?.public_logs?.retention_days ?? 7,
+        });
+      } catch (err) {
+        console.error('Failed to set form values:', err);
+      }
     }
   }, [config, loading, error]);
 
@@ -60,17 +64,18 @@ const BillingGovernanceSetting = () => {
   const handleSubmit = async (values) => {
     setSaving(true);
     try {
+      const retentionDays = Number(values.publicLogsRetention) || 0;
       const payload = {
         billing: {
-          enabled: values.billingEnabled,
-          defaultMode: values.defaultMode,
+          enabled: Boolean(values.billingEnabled),
+          defaultMode: values.defaultMode || 'balance',
         },
         governance: {
-          enabled: values.governanceEnabled,
+          enabled: Boolean(values.governanceEnabled),
         },
         public_logs: {
-          enabled: values.publicLogsEnabled,
-          retention_days: values.publicLogsRetention,
+          enabled: Boolean(values.publicLogsEnabled),
+          retention_days: retentionDays > 0 ? retentionDays : 7,
         },
       };
       const res = await API.put('/api/option/features', payload);
@@ -81,11 +86,13 @@ const BillingGovernanceSetting = () => {
         showError(res?.data?.message || t('保存失败'));
       }
     } catch (error) {
+      console.error('Failed to save billing/governance settings:', error);
       showError(error?.response?.data?.message || error?.message || t('保存失败'));
     } finally {
       setSaving(false);
     }
   };
+
 
   return (
     <Spin spinning={loading || saving}>
