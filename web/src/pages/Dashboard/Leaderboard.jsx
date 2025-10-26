@@ -32,7 +32,7 @@ const WINDOW_PRESETS = [
 
 const LeaderboardPage = () => {
   const { t } = useTranslation();
-  const { config, loading: configLoading } = useBillingFeatures();
+  const { config, loading: configLoading, error, refresh } = useBillingFeatures();
   const [activeWindow, setActiveWindow] = useState('24h');
   const [loading, setLoading] = useState(false);
   const [entries, setEntries] = useState([]);
@@ -65,11 +65,11 @@ const LeaderboardPage = () => {
   }, [activeWindow, admin, t]);
 
   useEffect(() => {
-    if (!billingEnabled) {
+    if (!billingEnabled || error) {
       return;
     }
     fetchLeaderboard();
-  }, [fetchLeaderboard, billingEnabled]);
+  }, [fetchLeaderboard, billingEnabled, error]);
 
   const columns = useMemo(() => {
     const base = [
@@ -134,6 +134,21 @@ const LeaderboardPage = () => {
     return (
       <div className='mt-[60px] px-2 pb-6'>
         <Card loading></Card>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className='mt-[60px] px-2 pb-6'>
+        <Card bordered>
+          <Space direction='vertical' align='center' className='w-full'>
+            <Empty description={t('计费配置加载失败，暂时无法展示排行榜')} />
+            <Button theme='solid' type='primary' onClick={() => refresh()}>
+              {t('重试')}
+            </Button>
+          </Space>
+        </Card>
       </div>
     );
   }

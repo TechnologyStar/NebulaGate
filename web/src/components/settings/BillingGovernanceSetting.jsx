@@ -18,19 +18,29 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Button, Card, Col, Form, Row, Typography, Spin } from '@douyinfe/semi-ui';
+import {
+  Banner,
+  Button,
+  Card,
+  Col,
+  Form,
+  Row,
+  Typography,
+  Spin,
+} from '@douyinfe/semi-ui';
 import { useTranslation } from 'react-i18next';
 import { API, showError, showSuccess } from '../../helpers';
 import { useBillingFeatures } from '../../hooks/billing/useBillingFeatures';
 
 const BillingGovernanceSetting = () => {
   const { t } = useTranslation();
-  const { config, refresh: refreshConfig, loading } = useBillingFeatures();
+  const { config, refresh: refreshConfig, loading, error } = useBillingFeatures();
   const [saving, setSaving] = useState(false);
   const formRef = useRef(null);
+  const [errorDismissed, setErrorDismissed] = useState(false);
 
   useEffect(() => {
-    if (!loading && config && formRef.current) {
+    if (!loading && !error && config && formRef.current) {
       formRef.current.setValues({
         billingEnabled: config?.billing?.enabled ?? false,
         defaultMode: config?.billing?.defaultMode ?? 'balance',
@@ -39,7 +49,13 @@ const BillingGovernanceSetting = () => {
         publicLogsRetention: config?.public_logs?.retention_days ?? 7,
       });
     }
-  }, [config, loading]);
+  }, [config, loading, error]);
+
+  useEffect(() => {
+    if (error) {
+      setErrorDismissed(false);
+    }
+  }, [error]);
 
   const handleSubmit = async (values) => {
     setSaving(true);
@@ -81,7 +97,27 @@ const BillingGovernanceSetting = () => {
         labelWidth={220}
         onSubmit={handleSubmit}
         className='space-y-6'
+        disabled={Boolean(error)}
       >
+        {!errorDismissed && error ? (
+          <Banner
+            className='mb-4'
+            type='danger'
+            description={error?.message || t('配置加载失败，请稍后再试')}
+            closeIcon
+            onClose={() => setErrorDismissed(true)}
+            actions={
+              <Button
+                size='small'
+                theme='solid'
+                type='tertiary'
+                onClick={() => refreshConfig()}
+              >
+                {t('重试')}
+              </Button>
+            }
+          />
+        ) : null}
         <Card title={t('计费配置')} bordered>
           <Row gutter={16} align='middle'>
             <Col span={12}>

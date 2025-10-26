@@ -18,7 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { Card, Col, Empty, Row, Skeleton, Tag, Typography } from '@douyinfe/semi-ui';
+import { Button, Card, Col, Empty, Row, Skeleton, Tag, Typography } from '@douyinfe/semi-ui';
 import { useTranslation } from 'react-i18next';
 import { API, timestamp2string } from '../../helpers';
 import { useBillingFeatures } from '../../hooks/billing/useBillingFeatures';
@@ -26,7 +26,7 @@ import QuotaProgress from '../billing/QuotaProgress';
 
 const PlanUsagePanel = () => {
   const { t } = useTranslation();
-  const { config, loading: configLoading } = useBillingFeatures();
+  const { config, loading: configLoading, error, refresh } = useBillingFeatures();
   const [assignments, setAssignments] = useState([]);
   const [loading, setLoading] = useState(false);
   const billingEnabled = config?.billing?.enabled;
@@ -117,7 +117,27 @@ const PlanUsagePanel = () => {
     );
   }, [assignments, billingEnabled, loading, t]);
 
-  if (configLoading || !billingEnabled) {
+  if (configLoading) {
+    return <Card bordered loading></Card>;
+  }
+
+  if (error) {
+    return (
+      <Card bordered>
+        <Typography.Title heading={4}>{t('订阅用量')}</Typography.Title>
+        <Typography.Text type='tertiary'>
+          {t('暂时无法加载订阅用量信息，请稍后重试。')}
+        </Typography.Text>
+        <div className='mt-4 flex justify-center'>
+          <Button theme='solid' type='primary' onClick={() => refresh()}>
+            {t('重试')}
+          </Button>
+        </div>
+      </Card>
+    );
+  }
+
+  if (!billingEnabled) {
     return null;
   }
 

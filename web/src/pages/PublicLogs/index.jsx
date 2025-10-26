@@ -35,7 +35,7 @@ import { useBillingFeatures } from '../../hooks/billing/useBillingFeatures';
 
 const PublicLogsPage = () => {
   const { t } = useTranslation();
-  const { config, loading: configLoading } = useBillingFeatures();
+  const { config, loading: configLoading, error, refresh } = useBillingFeatures();
 
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -180,6 +180,21 @@ const PublicLogsPage = () => {
     return (
       <div className='mt-[60px] px-2 pb-6'>
         <Card loading></Card>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className='mt-[60px] px-2 pb-6'>
+        <Card bordered>
+          <Space vertical align='center' className='w-full'>
+            <Empty description={t('计费配置加载失败，暂时无法展示公开日志')} />
+            <Button theme='solid' type='primary' onClick={() => refresh()}>
+              {t('重试')}
+            </Button>
+          </Space>
+        </Card>
       </div>
     );
   }

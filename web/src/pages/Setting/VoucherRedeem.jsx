@@ -37,7 +37,7 @@ import { useBillingFeatures } from '../../hooks/billing/useBillingFeatures';
 
 const VoucherRedeem = () => {
   const { t } = useTranslation();
-  const { config, loading: configLoading } = useBillingFeatures();
+  const { config, loading: configLoading, error, refresh } = useBillingFeatures();
 
   const [redeemLoading, setRedeemLoading] = useState(false);
   const [historyLoading, setHistoryLoading] = useState(false);
@@ -243,6 +243,21 @@ const VoucherRedeem = () => {
         <Skeleton loading>
           <div className='h-[120px] rounded-lg bg-[var(--semi-color-fill-0)]' />
         </Skeleton>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className='mt-[60px] px-2 pb-6'>
+        <Card bordered>
+          <Space direction='vertical' align='center' className='w-full'>
+            <Empty description={t('计费配置加载失败，无法使用兑换码功能')} />
+            <Button theme='solid' type='primary' onClick={() => refresh()}>
+              {t('重试')}
+            </Button>
+          </Space>
+        </Card>
       </div>
     );
   }
