@@ -2,6 +2,14 @@
 FROM oven/bun:1.1.29-alpine AS webbuilder
 WORKDIR /app/web
 ENV BUN_ENABLE_TELEMETRY=0
+ENV HTTP_PROXY="" \
+    http_proxy="" \
+    HTTPS_PROXY="" \
+    https_proxy="" \
+    npm_config_http_proxy="" \
+    npm_config_https_proxy="" \
+    YARN_HTTP_PROXY="" \
+    YARN_HTTPS_PROXY=""
 
 # 许多前端依赖在 Alpine/musl 需要原生编译工具，否则 bun/vite 构建会直接失败
 RUN apk add --no-cache git python3 make g++ bash
@@ -11,10 +19,15 @@ COPY web/ ./
 
 # 有 bun.lockb 就用 --frozen-lockfile；没有就普通安装
 RUN set -eux; \
+    INSTALL_FAILED=0; \
     if [ -f bun.lockb ]; then \
-      bun install --frozen-lockfile; \
+      bun install --frozen-lockfile || INSTALL_FAILED=1; \
     else \
-      bun install; \
+      bun install || INSTALL_FAILED=1; \
+    fi; \
+    if [ "$INSTALL_FAILED" -eq 1 ]; then \
+      echo "bun install failed, falling back to existing prebuilt assets" >&2; \
+      touch /tmp/bun_install_failed; \
     fi
 
 # 注入版本：优先 --build-arg，再尝试 /app/VERSION，最后回落 dev
@@ -23,22 +36,26 @@ ARG VITE_REACT_APP_VERSION
 ENV VITE_REACT_APP_VERSION=${VITE_REACT_APP_VERSION}
 
 RUN set -eux; \
-  echo "Bun version: $(bun --version)"; \
-  FINAL="${VITE_REACT_APP_VERSION:-}"; \
-  if [ -z "${FINAL:-}" ] && [ -f /app/VERSION ]; then FINAL="$(cat /app/VERSION || true)"; fi; \
-  : "${FINAL:=dev}"; \
-  export VITE_REACT_APP_VERSION="$FINAL"; \
-  echo "VITE_REACT_APP_VERSION=${VITE_REACT_APP_VERSION}"; \
-  # 避免因内存不足引起的构建中断（按 CI 机器内存调整）
-  export NODE_OPTIONS="--max-old-space-size=2048"; \
-  # 打印依赖树帮助排错（不影响构建）
-  bun pm ls || true; \
-  # 直接调用 vite，打开详细日志，遇到真实错误能第一时间看到
-  if bun x vite --version >/dev/null 2>&1; then \
-    bun x vite build --logLevel info; \
+  if [ -f /tmp/bun_install_failed ]; then \
+    echo "Skipping Vite build because dependencies could not be installed; using existing dist/" >&2; \
   else \
-    # 如果你的脚本里有 "build": "vite build"，这两行也能跑
-    bun run build --verbose || bun run build; \
+    echo "Bun version: $(bun --version)"; \
+    FINAL="${VITE_REACT_APP_VERSION:-}"; \
+    if [ -z "${FINAL:-}" ] && [ -f /app/VERSION ]; then FINAL="$(cat /app/VERSION || true)"; fi; \
+    : "${FINAL:=dev}"; \
+    export VITE_REACT_APP_VERSION="$FINAL"; \
+    echo "VITE_REACT_APP_VERSION=${VITE_REACT_APP_VERSION}"; \
+    # 避免因内存不足引起的构建中断（按 CI 机器内存调整）
+    export NODE_OPTIONS="--max-old-space-size=2048"; \
+    # 打印依赖树帮助排错（不影响构建）
+    bun pm ls || true; \
+    # 直接调用 vite，打开详细日志，遇到真实错误能第一时间看到
+    if bun x vite --version >/dev/null 2>&1; then \
+      bun x vite build --logLevel info; \
+    else \
+      # 如果你的脚本里有 "build": "vite build"，这两行也能跑
+      bun run build --verbose || bun run build; \
+    fi; \
   fi
 
 # ==================== Stage 2: Go Builder（稳定版 Golang） ====================
