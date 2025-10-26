@@ -18,7 +18,8 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Button, Card, Empty, Segmented, Space, Table, Tooltip, Typography } from '@douyinfe/semi-ui';
+import { Button, Card, Empty, Space, Table, Tooltip, Typography } from '@douyinfe/semi-ui';
+import { Segmented } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { API, isAdmin } from '../../helpers';
 import { useBillingFeatures } from '../../hooks/billing/useBillingFeatures';
