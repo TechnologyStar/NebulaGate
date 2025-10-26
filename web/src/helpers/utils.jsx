@@ -28,54 +28,123 @@ import {
 import { TABLE_COMPACT_MODES_KEY } from '../constants';
 import { MOBILE_BREAKPOINT } from '../hooks/common/useIsMobile';
 
+const hasWindow = typeof window !== 'undefined';
+const hasDocument = typeof document !== 'undefined';
+const hasNavigator = typeof navigator !== 'undefined';
+
+const getLocalStorage = () => {
+  if (!hasWindow || !('localStorage' in window)) {
+    return null;
+  }
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+};
+
+const getLocalStorageItem = (key) => {
+  const storage = getLocalStorage();
+  if (!storage) {
+    return null;
+  }
+  try {
+    return storage.getItem(key);
+  } catch {
+    return null;
+  }
+};
+
+const setLocalStorageItem = (key, value) => {
+  const storage = getLocalStorage();
+  if (!storage) {
+    return;
+  }
+  try {
+    storage.setItem(key, value);
+  } catch {
+    // ignore write failures (e.g. quota exceeded)
+  }
+};
+
+const removeLocalStorageItem = (key) => {
+  const storage = getLocalStorage();
+  if (!storage) {
+    return;
+  }
+  try {
+    storage.removeItem(key);
+  } catch {
+    // ignore
+  }
+};
+
 const HTMLToastContent = ({ htmlContent }) => {
   return <div dangerouslySetInnerHTML={{ __html: htmlContent }} />;
 };
 export default HTMLToastContent;
 export function isAdmin() {
-  let user = localStorage.getItem('user');
+  const user = getLocalStorageItem('user');
   if (!user) return false;
-  user = JSON.parse(user);
-  return user.role >= 10;
+  try {
+    const parsed = JSON.parse(user);
+    return parsed.role >= 10;
+  } catch {
+    return false;
+  }
 }
 
 export function isRoot() {
-  let user = localStorage.getItem('user');
+  const user = getLocalStorageItem('user');
   if (!user) return false;
-  user = JSON.parse(user);
-  return user.role >= 100;
+  try {
+    const parsed = JSON.parse(user);
+    return parsed.role >= 100;
+  } catch {
+    return false;
+  }
 }
 
 export function getSystemName() {
-  let system_name = localStorage.getItem('system_name');
+  const system_name = getLocalStorageItem('system_name');
   if (!system_name) return 'New API';
   return system_name;
 }
 
 export function getLogo() {
-  let logo = localStorage.getItem('logo');
+  const logo = getLocalStorageItem('logo');
   if (!logo) return '/logo.png';
   return logo;
 }
 
 export function getUserIdFromLocalStorage() {
-  let user = localStorage.getItem('user');
+  const user = getLocalStorageItem('user');
   if (!user) return -1;
-  user = JSON.parse(user);
-  return user.id;
+  try {
+    const parsed = JSON.parse(user);
+    return parsed.id;
+  } catch {
+    return -1;
+  }
 }
 
 export function getFooterHTML() {
-  return localStorage.getItem('footer_html');
+  return getLocalStorageItem('footer_html');
 }
 
 export async function copy(text) {
   let okay = true;
   try {
+    if (!hasNavigator || !navigator.clipboard?.writeText) {
+      throw new Error('Clipboard API unavailable');
+    }
     await navigator.clipboard.writeText(text);
   } catch (e) {
     try {
       // 构建 textarea 执行复制命令，保留多行文本格式
+      if (!hasWindow || !hasDocument) {
+        throw e;
+      }
       const textarea = window.document.createElement('textarea');
       textarea.value = text;
       textarea.setAttribute('readonly', '');
@@ -102,9 +171,10 @@ let showSuccessOptions = { autoClose: toastConstants.SUCCESS_TIMEOUT };
 let showInfoOptions = { autoClose: toastConstants.INFO_TIMEOUT };
 let showNoticeOptions = { autoClose: false };
 
-const isMobileScreen = window.matchMedia(
-  `(max-width: ${MOBILE_BREAKPOINT - 1}px)`,
-).matches;
+const isMobileScreen =
+  hasWindow && typeof window.matchMedia === 'function'
+    ? window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`).matches
+    : false;
 if (isMobileScreen) {
   showErrorOptions.position = 'top-center';
   // showErrorOptions.transition = 'flip';
@@ -126,9 +196,11 @@ export function showError(error) {
       switch (error.response.status) {
         case 401:
           // 清除用户状态
-          localStorage.removeItem('user');
+          removeLocalStorageItem('user');
           // toast.error('错误：未登录或登录已过期，请重新登录！', showErrorOptions);
-          window.location.href = '/login?expired=true';
+          if (hasWindow) {
+            window.location.href = '/login?expired=true';
+          }
           break;
         case 429:
           Toast.error('错误：请求次数过多，请稍后再试！');
@@ -171,6 +243,9 @@ export function showNotice(message, isHTML = false) {
 }
 
 export function openPage(url) {
+  if (!hasWindow) {
+    return;
+  }
   window.open(url);
 }
 
@@ -281,12 +356,12 @@ export function verifyJSONPromise(value) {
 }
 
 export function shouldShowPrompt(id) {
-  let prompt = localStorage.getItem(`prompt-${id}`);
+  const prompt = getLocalStorageItem(`prompt-${id}`);
   return !prompt;
 }
 
 export function setPromptShown(id) {
-  localStorage.setItem(`prompt-${id}`, 'true');
+  setLocalStorageItem(`prompt-${id}`, 'true');
 }
 
 /**
@@ -549,20 +624,19 @@ export const formatDateTimeString = (date) => {
 };
 
 function readTableCompactModes() {
+  const json = getLocalStorageItem(TABLE_COMPACT_MODES_KEY);
+  if (!json) {
+    return {};
+  }
   try {
-    const json = localStorage.getItem(TABLE_COMPACT_MODES_KEY);
-    return json ? JSON.parse(json) : {};
+    return JSON.parse(json);
   } catch {
     return {};
   }
 }
 
 function writeTableCompactModes(modes) {
-  try {
-    localStorage.setItem(TABLE_COMPACT_MODES_KEY, JSON.stringify(modes));
-  } catch {
-    // ignore
-  }
+  setLocalStorageItem(TABLE_COMPACT_MODES_KEY, JSON.stringify(modes));
 }
 
 export function getTableCompactMode(tableKey = 'global') {
@@ -650,15 +724,15 @@ export const calculateModelPrice = ({
     if (currency === 'CNY') {
       symbol = '¥';
     } else if (currency === 'CUSTOM') {
-      try {
-        const statusStr = localStorage.getItem('status');
-        if (statusStr) {
+      const statusStr = getLocalStorageItem('status');
+      if (statusStr) {
+        try {
           const s = JSON.parse(statusStr);
           symbol = s?.custom_currency_symbol || '¤';
-        } else {
+        } catch (e) {
           symbol = '¤';
         }
-      } catch (e) {
+      } else {
         symbol = '¤';
       }
     }
