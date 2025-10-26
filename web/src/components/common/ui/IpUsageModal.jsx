@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Modal, Table, Space, Select, Statistic, Tag, Typography } from '@douyinfe/semi-ui';
+import { Modal, Table, Space, Select, Tag, Typography, Card } from '@douyinfe/semi-ui';
 import { timestamp2string } from '../../../helpers';
 
 const WINDOW_OPTIONS = [
@@ -87,16 +87,28 @@ const IpUsageModal = ({
           />
         </Space>
 
-        <Space wrap>
+        <Space wrap spacing='medium'>
           {summaryItems.map((item) => (
-            <Statistic
+            <Card
               key={item.title}
-              title={item.title}
-              value={item.value}
-              formatter={(value) => Number(value || 0).toLocaleString()}
-            />
+              bodyStyle={{ padding: '12px 16px' }}
+              style={{
+                minWidth: 160,
+                borderRadius: 12,
+                border: '1px solid var(--semi-color-border)',
+              }}
+            >
+              <Space direction='vertical' spacing={4}>
+                <Typography.Text type='tertiary'>{item.title}</Typography.Text>
+                <Typography.Title heading={4} style={{ margin: 0 }}>
+                  {Number(item.value || 0).toLocaleString()}
+                </Typography.Title>
+              </Space>
+            </Card>
           ))}
-          <Tag color='white'>{t('当前窗口')}: {t(WINDOW_OPTIONS.find((opt) => opt.value === windowValue)?.label || '')}</Tag>
+          <Tag color='white'>
+            {t('当前窗口')}: {t(WINDOW_OPTIONS.find((opt) => opt.value === windowValue)?.label || '')}
+          </Tag>
         </Space>
 
         <Table
