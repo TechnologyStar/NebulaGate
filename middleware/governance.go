@@ -1,3 +1,4 @@
+//go:build governance
 package middleware
 
 import (
