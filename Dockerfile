@@ -11,7 +11,7 @@ RUN set -eux; \
 # 构建所需工具：
 # - build-base: 包含 make/gcc/g++
 # - libc6-compat: 兼容层，避免 esbuild/sharp 等预编译二进制在 musl 下崩溃
-RUN apk add --no-cache git python3 build-base bash libc6-compat
+RUN apk add --no-cache git python3 build-base bash
 
 # 先复制 manifest（利于缓存），再装依赖
 COPY web/package.json web/bun.lockb* ./
