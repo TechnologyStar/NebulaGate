@@ -11,17 +11,11 @@ COPY web/ ./
 
 # 有 bun.lockb 就用 --frozen-lockfile；没有就普通安装
 RUN set -eux; \
-    build_with_bun=1; \
     if [ -f bun.lockb ]; then \
-      if ! bun install --frozen-lockfile; then \
-        build_with_bun=0; \
-      fi; \
+      bun install --frozen-lockfile; \
     else \
-      if ! bun install; then \
-        build_with_bun=0; \
-      fi; \
-    fi; \
-    echo "$build_with_bun" > /tmp/.web_build_flag
+      bun install; \
+    fi
 
 # 注入版本：优先 --build-arg，再尝试 /app/VERSION，最后回落 dev
 # 不强制 COPY VERSION（避免流水线里没有该文件导致构建直接失败）
@@ -29,28 +23,22 @@ ARG VITE_REACT_APP_VERSION
 ENV VITE_REACT_APP_VERSION=${VITE_REACT_APP_VERSION}
 
 RUN set -eux; \
-  BUILD_WITH_BUN="$(cat /tmp/.web_build_flag)"; \
-  if [ "$BUILD_WITH_BUN" = "1" ]; then \
-    echo "Bun version: $(bun --version)"; \
-    FINAL="${VITE_REACT_APP_VERSION:-}"; \
-    if [ -z "${FINAL:-}" ] && [ -f /app/VERSION ]; then FINAL="$(cat /app/VERSION || true)"; fi; \
-    : "${FINAL:=dev}"; \
-    export VITE_REACT_APP_VERSION="$FINAL"; \
-    echo "VITE_REACT_APP_VERSION=${VITE_REACT_APP_VERSION}"; \
-    # 避免因内存不足引起的构建中断（按 CI 机器内存调整）
-    export NODE_OPTIONS="--max-old-space-size=2048"; \
-    # 打印依赖树帮助排错（不影响构建）
-    bun pm ls || true; \
-    # 直接调用 vite，打开详细日志，遇到真实错误能第一时间看到
-    if bun x vite --version >/dev/null 2>&1; then \
-      bun x vite build --logLevel info; \
-    else \
-      # 如果你的脚本里有 "build": "vite build"，这两行也能跑
-      bun run build --verbose || bun run build; \
-    fi; \
+  echo "Bun version: $(bun --version)"; \
+  FINAL="${VITE_REACT_APP_VERSION:-}"; \
+  if [ -z "${FINAL:-}" ] && [ -f /app/VERSION ]; then FINAL="$(cat /app/VERSION || true)"; fi; \
+  : "${FINAL:=dev}"; \
+  export VITE_REACT_APP_VERSION="$FINAL"; \
+  echo "VITE_REACT_APP_VERSION=${VITE_REACT_APP_VERSION}"; \
+  # 避免因内存不足引起的构建中断（按 CI 机器内存调整）
+  export NODE_OPTIONS="--max-old-space-size=2048"; \
+  # 打印依赖树帮助排错（不影响构建）
+  bun pm ls || true; \
+  # 直接调用 vite，打开详细日志，遇到真实错误能第一时间看到
+  if bun x vite --version >/dev/null 2>&1; then \
+    bun x vite build --logLevel info; \
   else \
-    echo "bun install unavailable; skipping web build and using existing dist artifacts"; \
-    mkdir -p dist; \
+    # 如果你的脚本里有 "build": "vite build"，这两行也能跑
+    bun run build --verbose || bun run build; \
   fi
 
 # ==================== Stage 2: Go Builder（稳定版 Golang） ====================

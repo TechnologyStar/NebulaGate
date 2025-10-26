@@ -17,15 +17,10 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-/**
- * The original configuration relied on the external `i18next-cli` package, which is
- * no longer available from the npm registry in our build environment. Keeping the
- * configuration inline allows future tooling to consume it without introducing an
- * unavailable dependency during installation.
- *
- * @type {{ locales: string[]; extract: import('typescript').MapLike<unknown> }}
- */
-const config = {
+import { defineConfig } from 'i18next-cli';
+
+/** @type {import('i18next-cli').I18nextToolkitConfig} */
+export default defineConfig({
   locales: [
     "zh",
     "en",
@@ -97,6 +92,4 @@ const config = {
     keySeparator: false,
     mergeNamespaces: true
   }
-};
-
-export default config;
+});
