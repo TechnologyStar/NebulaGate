@@ -17,7 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Button, Card, Col, Form, Row, Typography, Spin } from '@douyinfe/semi-ui';
 import { useTranslation } from 'react-i18next';
 import { API, showError, showSuccess } from '../../helpers';
@@ -27,19 +27,19 @@ const BillingGovernanceSetting = () => {
   const { t } = useTranslation();
   const { config, refresh: refreshConfig, loading } = useBillingFeatures();
   const [saving, setSaving] = useState(false);
-  const [form] = Form.useForm();
+  const formRef = useRef(null);
 
   useEffect(() => {
-    if (!loading && config) {
-      form.setValues({
-        billingEnabled: config.billing.enabled,
-        defaultMode: config.billing.defaultMode,
-        governanceEnabled: config.governance.enabled,
-        publicLogsEnabled: config.public_logs.enabled,
-        publicLogsRetention: config.public_logs.retention_days || 7,
+    if (!loading && config && formRef.current) {
+      formRef.current.setValues({
+        billingEnabled: config?.billing?.enabled ?? false,
+        defaultMode: config?.billing?.defaultMode ?? 'balance',
+        governanceEnabled: config?.governance?.enabled ?? false,
+        publicLogsEnabled: config?.public_logs?.enabled ?? false,
+        publicLogsRetention: config?.public_logs?.retention_days ?? 7,
       });
     }
-  }, [config, loading, form]);
+  }, [config, loading]);
 
   const handleSubmit = async (values) => {
     setSaving(true);
@@ -74,7 +74,9 @@ const BillingGovernanceSetting = () => {
   return (
     <Spin spinning={loading || saving}>
       <Form
-        form={form}
+        getFormApi={(api) => {
+          formRef.current = api;
+        }}
         labelPosition='left'
         labelWidth={220}
         onSubmit={handleSubmit}
