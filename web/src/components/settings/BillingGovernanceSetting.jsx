@@ -17,16 +17,18 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Banner,
   Button,
   Card,
   Col,
-  Form,
   Row,
   Typography,
   Spin,
+  Switch,
+  Select,
+  InputNumber,
 } from '@douyinfe/semi-ui';
 import { useTranslation } from 'react-i18next';
 import { API, showError, showSuccess } from '../../helpers';
@@ -36,21 +38,24 @@ const BillingGovernanceSetting = () => {
   const { t } = useTranslation();
   const { config, refresh: refreshConfig, loading, error } = useBillingFeatures();
   const [saving, setSaving] = useState(false);
-  const formRef = useRef(null);
   const [errorDismissed, setErrorDismissed] = useState(false);
 
+  const [billingEnabled, setBillingEnabled] = useState(false);
+  const [defaultMode, setDefaultMode] = useState('balance');
+  const [governanceEnabled, setGovernanceEnabled] = useState(false);
+  const [publicLogsEnabled, setPublicLogsEnabled] = useState(false);
+  const [publicLogsRetention, setPublicLogsRetention] = useState(7);
+
   useEffect(() => {
-    if (!loading && !error && config && formRef.current) {
+    if (!loading && !error && config) {
       try {
-        formRef.current.setValues({
-          billingEnabled: config?.billing?.enabled ?? false,
-          defaultMode: config?.billing?.defaultMode ?? 'balance',
-          governanceEnabled: config?.governance?.enabled ?? false,
-          publicLogsEnabled: config?.public_logs?.enabled ?? false,
-          publicLogsRetention: config?.public_logs?.retention_days ?? 7,
-        });
+        setBillingEnabled(config?.billing?.enabled ?? false);
+        setDefaultMode(config?.billing?.defaultMode ?? 'balance');
+        setGovernanceEnabled(config?.governance?.enabled ?? false);
+        setPublicLogsEnabled(config?.public_logs?.enabled ?? false);
+        setPublicLogsRetention(config?.public_logs?.retention_days ?? 7);
       } catch (err) {
-        console.error('Failed to set form values:', err);
+        console.error('Failed to load form values:', err);
       }
     }
   }, [config, loading, error]);
@@ -61,20 +66,20 @@ const BillingGovernanceSetting = () => {
     }
   }, [error]);
 
-  const handleSubmit = async (values) => {
+  const handleSubmit = async () => {
     setSaving(true);
     try {
-      const retentionDays = Number(values.publicLogsRetention) || 0;
+      const retentionDays = Number(publicLogsRetention) || 7;
       const payload = {
         billing: {
-          enabled: Boolean(values.billingEnabled),
-          defaultMode: values.defaultMode || 'balance',
+          enabled: Boolean(billingEnabled),
+          defaultMode: defaultMode || 'balance',
         },
         governance: {
-          enabled: Boolean(values.governanceEnabled),
+          enabled: Boolean(governanceEnabled),
         },
         public_logs: {
-          enabled: Boolean(values.publicLogsEnabled),
+          enabled: Boolean(publicLogsEnabled),
           retention_days: retentionDays > 0 ? retentionDays : 7,
         },
       };
@@ -93,86 +98,119 @@ const BillingGovernanceSetting = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className='flex justify-center items-center min-h-[400px]'>
+        <Spin size='large' />
+      </div>
+    );
+  }
 
   return (
-    <Spin spinning={loading || saving}>
-      <Form
-        getFormApi={(api) => {
-          formRef.current = api;
-        }}
-        labelPosition='left'
-        labelWidth={220}
-        onSubmit={handleSubmit}
-        className='space-y-6'
-        disabled={Boolean(error)}
-      >
-        {!errorDismissed && error ? (
-          <Banner
-            className='mb-4'
-            type='danger'
-            description={error?.message || t('配置加载失败，请稍后再试')}
-            closeIcon
-            onClose={() => setErrorDismissed(true)}
-            actions={
-              <Button
-                size='small'
-                theme='solid'
-                type='tertiary'
-                onClick={() => refreshConfig()}
-              >
-                {t('重试')}
-              </Button>
-            }
-          />
-        ) : null}
-        <Card title={t('计费配置')} bordered>
-          <Row gutter={16} align='middle'>
-            <Col span={12}>
-              <Form.Switch field='billingEnabled' label={t('启用计费功能')} />
-            </Col>
-            <Col span={12}>
-              <Form.Select
-                field='defaultMode'
-                label={t('默认计费模式')}
+    <div className='space-y-6'>
+      {!errorDismissed && error ? (
+        <Banner
+          type='danger'
+          description={error?.message || t('配置加载失败，请稍后再试')}
+          closeIcon
+          onClose={() => setErrorDismissed(true)}
+          actions={
+            <Button
+              size='small'
+              theme='solid'
+              type='tertiary'
+              onClick={() => refreshConfig()}
+            >
+              {t('重试')}
+            </Button>
+          }
+        />
+      ) : null}
+
+      <Card title={t('计费配置')} bordered>
+        <Row gutter={16} className='mb-4'>
+          <Col span={12}>
+            <div className='flex items-center justify-between'>
+              <Typography.Text>{t('启用计费功能')}</Typography.Text>
+              <Switch
+                checked={billingEnabled}
+                onChange={(checked) => setBillingEnabled(Boolean(checked))}
+                disabled={Boolean(error) || saving}
+              />
+            </div>
+          </Col>
+          <Col span={12}>
+            <div className='flex items-center justify-between'>
+              <Typography.Text>{t('默认计费模式')}</Typography.Text>
+              <Select
+                value={defaultMode}
+                onChange={(value) => setDefaultMode(value)}
+                disabled={Boolean(error) || saving}
+                style={{ width: 200 }}
                 optionList={[
                   { label: t('余额'), value: 'balance' },
                   { label: t('计划'), value: 'plan' },
                   { label: t('自动'), value: 'auto' },
                 ]}
               />
-            </Col>
-          </Row>
-        </Card>
+            </div>
+          </Col>
+        </Row>
+      </Card>
 
-        <Card title={t('治理配置')} bordered>
-          <Form.Switch field='governanceEnabled' label={t('启用治理标记')} />
-        </Card>
+      <Card title={t('治理配置')} bordered>
+        <div className='flex items-center justify-between'>
+          <Typography.Text>{t('启用治理标记')}</Typography.Text>
+          <Switch
+            checked={governanceEnabled}
+            onChange={(checked) => setGovernanceEnabled(Boolean(checked))}
+            disabled={Boolean(error) || saving}
+          />
+        </div>
+      </Card>
 
-        <Card title={t('公开日志')} bordered>
-          <Row gutter={16} align='middle'>
-            <Col span={12}>
-              <Form.Switch field='publicLogsEnabled' label={t('启用公开日志')} />
-            </Col>
-            <Col span={12}>
-              <Form.InputNumber
-                field='publicLogsRetention'
-                label={t('日志保留天数')}
+      <Card title={t('公开日志')} bordered>
+        <Row gutter={16} className='mb-4'>
+          <Col span={12}>
+            <div className='flex items-center justify-between'>
+              <Typography.Text>{t('启用公开日志')}</Typography.Text>
+              <Switch
+                checked={publicLogsEnabled}
+                onChange={(checked) => setPublicLogsEnabled(Boolean(checked))}
+                disabled={Boolean(error) || saving}
+              />
+            </div>
+          </Col>
+          <Col span={12}>
+            <div className='flex items-center justify-between'>
+              <Typography.Text>{t('日志保留天数')}</Typography.Text>
+              <InputNumber
+                value={publicLogsRetention}
+                onChange={(value) => setPublicLogsRetention(Number(value) || 7)}
                 min={1}
                 max={30}
                 step={1}
+                disabled={Boolean(error) || saving}
+                style={{ width: 200 }}
               />
-            </Col>
-          </Row>
-          <Typography.Text type='tertiary'>
-            {t('公开日志将展示匿名化的请求信息，并在设定的保留时间后自动清理。')}
-          </Typography.Text>
-        </Card>
+            </div>
+          </Col>
+        </Row>
+        <Typography.Text type='tertiary' size='small'>
+          {t('公开日志将展示匿名化的请求信息，并在设定的保留时间后自动清理。')}
+        </Typography.Text>
+      </Card>
 
-        <Button theme='solid' type='primary' htmlType='submit'>
-          {t('保存设置')}
-        </Button>
-      </Form>
-    </Spin>
+      <Button
+        theme='solid'
+        type='primary'
+        onClick={handleSubmit}
+        loading={saving}
+        disabled={Boolean(error)}
+      >
+        {t('保存设置')}
+      </Button>
+    </div>
   );
 };
 
