@@ -42,6 +42,9 @@ func SetApiRouter(router *gin.Engine) {
 
         apiRouter.POST("/stripe/webhook", controller.StripeWebhook)
 
+        apiRouter.GET("/option/features", controller.GetFeatureOptions)
+        apiRouter.PUT("/option/features", middleware.RootAuth(), controller.UpdateFeatureOptions)
+
         // Universal secure verification routes
         apiRouter.POST("/verify", middleware.UserAuth(), middleware.CriticalRateLimit(), controller.UniversalVerify)
         apiRouter.GET("/verify/status", middleware.UserAuth(), controller.GetVerificationStatus)

@@ -7,14 +7,202 @@ import (
 	"strings"
 
 	"github.com/QuantumNous/new-api/common"
+	"github.com/QuantumNous/new-api/dto"
 	"github.com/QuantumNous/new-api/model"
 	"github.com/QuantumNous/new-api/setting"
+	"github.com/QuantumNous/new-api/setting/config"
 	"github.com/QuantumNous/new-api/setting/console_setting"
 	"github.com/QuantumNous/new-api/setting/ratio_setting"
 	"github.com/QuantumNous/new-api/setting/system_setting"
 
 	"github.com/gin-gonic/gin"
 )
+
+func parseFeatureSections(param string) map[string]struct{} {
+	sections := make(map[string]struct{})
+	if param == "" {
+		return sections
+	}
+
+	for _, section := range strings.Split(param, ",") {
+		name := strings.TrimSpace(section)
+		if name == "" {
+			continue
+		}
+		sections[strings.ToLower(name)] = struct{}{}
+	}
+
+	return sections
+}
+
+func shouldIncludeSection(sectionSet map[string]struct{}, name string) bool {
+	if len(sectionSet) == 0 {
+		return true
+	}
+	_, ok := sectionSet[name]
+	return ok
+}
+
+func buildFeatureConfigResponse(sectionSet map[string]struct{}) dto.FeatureConfigResponse {
+	response := dto.FeatureConfigResponse{}
+
+	if shouldIncludeSection(sectionSet, "billing") {
+		cfg := config.GetBillingConfig()
+		response.Billing = &dto.BillingFeatureConfig{
+			Enabled:       cfg.Enabled,
+			DefaultMode:   cfg.DefaultMode,
+			AutoFallback:  cfg.AutoFallback,
+			ResetHourUTC:  cfg.ResetHourUTC,
+			ResetTimezone: cfg.ResetTimezone,
+			NotifyOnReset: cfg.NotifyOnReset,
+		}
+	}
+
+	if shouldIncludeSection(sectionSet, "governance") {
+		cfg := config.GetGovernanceConfig()
+		response.Governance = &dto.GovernanceFeatureConfig{
+			Enabled:           cfg.Enabled,
+			AbuseRPMThreshold: cfg.AbuseRPMThreshold,
+			RerouteModelAlias: cfg.RerouteModelAlias,
+			FlagTTLHours:      cfg.FlagTTLHours,
+		}
+	}
+
+	if shouldIncludeSection(sectionSet, "public_logs") {
+		cfg := config.GetPublicLogsConfig()
+		response.PublicLogs = &dto.PublicLogsFeatureConfig{
+			Enabled:          cfg.Enabled,
+			PublicVisibility: cfg.PublicVisibility,
+			RetentionDays:    cfg.RetentionDays,
+		}
+	}
+
+	return response
+}
+
+func persistFeatureConfig(section string, cfg interface{}) error {
+	configMap, err := config.ConfigToMap(cfg)
+	if err != nil {
+		return err
+	}
+
+	for key, value := range configMap {
+		if err := model.UpdateOption(section+"."+key, value); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// GetFeatureOptions returns non-sensitive feature flag configuration for billing/governance/public logs.
+func GetFeatureOptions(c *gin.Context) {
+	sectionSet := parseFeatureSections(c.Query("sections"))
+	response := buildFeatureConfigResponse(sectionSet)
+	common.ApiSuccess(c, response)
+}
+
+// UpdateFeatureOptions updates persisted feature flag configuration (root only).
+func UpdateFeatureOptions(c *gin.Context) {
+	var req dto.FeatureConfigUpdateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": "Invalid request payload",
+		})
+		return
+	}
+
+	if req.Billing == nil && req.Governance == nil && req.PublicLogs == nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": "No feature sections provided",
+		})
+		return
+	}
+
+	updatedSections := make(map[string]struct{})
+
+	if req.Billing != nil {
+		cfg := config.GetBillingConfig()
+		if req.Billing.Enabled != nil {
+			cfg.Enabled = *req.Billing.Enabled
+		}
+		if req.Billing.DefaultMode != nil {
+			cfg.DefaultMode = strings.TrimSpace(*req.Billing.DefaultMode)
+		}
+		if req.Billing.AutoFallback != nil {
+			cfg.AutoFallback = *req.Billing.AutoFallback
+		}
+		if req.Billing.ResetHourUTC != nil {
+			cfg.ResetHourUTC = *req.Billing.ResetHourUTC
+		}
+		if req.Billing.ResetTimezone != nil {
+			cfg.ResetTimezone = strings.TrimSpace(*req.Billing.ResetTimezone)
+		}
+		if req.Billing.NotifyOnReset != nil {
+			cfg.NotifyOnReset = *req.Billing.NotifyOnReset
+		}
+
+		if err := persistFeatureConfig("billing", cfg); err != nil {
+			common.ApiError(c, err)
+			return
+		}
+		updatedSections["billing"] = struct{}{}
+	}
+
+	if req.Governance != nil {
+		cfg := config.GetGovernanceConfig()
+		if req.Governance.Enabled != nil {
+			cfg.Enabled = *req.Governance.Enabled
+		}
+		if req.Governance.AbuseRPMThreshold != nil {
+			cfg.AbuseRPMThreshold = *req.Governance.AbuseRPMThreshold
+		}
+		if req.Governance.RerouteModelAlias != nil {
+			cfg.RerouteModelAlias = strings.TrimSpace(*req.Governance.RerouteModelAlias)
+		}
+		if req.Governance.FlagTTLHours != nil {
+			cfg.FlagTTLHours = *req.Governance.FlagTTLHours
+		}
+
+		if err := persistFeatureConfig("governance", cfg); err != nil {
+			common.ApiError(c, err)
+			return
+		}
+		updatedSections["governance"] = struct{}{}
+	}
+
+	if req.PublicLogs != nil {
+		if req.PublicLogs.RetentionDays != nil && *req.PublicLogs.RetentionDays <= 0 {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"success": false,
+				"message": "Retention days must be greater than zero",
+			})
+			return
+		}
+
+		cfg := config.GetPublicLogsConfig()
+		if req.PublicLogs.Enabled != nil {
+			cfg.Enabled = *req.PublicLogs.Enabled
+		}
+		if req.PublicLogs.PublicVisibility != nil {
+			cfg.PublicVisibility = strings.TrimSpace(*req.PublicLogs.PublicVisibility)
+		}
+		if req.PublicLogs.RetentionDays != nil {
+			cfg.RetentionDays = *req.PublicLogs.RetentionDays
+		}
+
+		if err := persistFeatureConfig("public_logs", cfg); err != nil {
+			common.ApiError(c, err)
+			return
+		}
+		updatedSections["public_logs"] = struct{}{}
+	}
+
+	response := buildFeatureConfigResponse(updatedSections)
+	common.ApiSuccess(c, response)
+}
 
 func GetOptions(c *gin.Context) {
 	var options []*model.Option
