@@ -17,13 +17,56 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { API } from '../../helpers';
 
 const DEFAULT_CONFIG = {
   billing: { enabled: false, defaultMode: 'balance' },
   governance: { enabled: false },
   public_logs: { enabled: false },
+};
+
+const FEATURE_SECTIONS = Object.freeze(['billing', 'governance', 'public_logs']);
+
+const SECTION_ALIASES = {
+  billing: 'billing',
+  finance: 'billing',
+  fea_mance: 'billing',
+  governance: 'governance',
+  public_logs: 'public_logs',
+  publiclog: 'public_logs',
+  publiclogs: 'public_logs',
+  'public-log': 'public_logs',
+};
+
+const normaliseSectionKey = (value) => {
+  if (!value && value !== 0) {
+    return null;
+  }
+  const safeValue = String(value)
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, '_');
+  if (!safeValue) {
+    return null;
+  }
+  return SECTION_ALIASES[safeValue] || safeValue;
+};
+
+const serialiseSections = (sections) => {
+  const raw = Array.isArray(sections)
+    ? sections
+    : String(sections ?? '')
+        .split(',')
+        .map((item) => item.trim());
+
+  const deduped = Array.from(
+    new Set(raw.map(normaliseSectionKey).filter(Boolean)),
+  );
+
+  const params = new URLSearchParams();
+  deduped.forEach((section) => params.append('sections', section));
+  return params.toString();
 };
 
 const normaliseConfig = (payload = {}) => {
@@ -47,11 +90,14 @@ export const useBillingFeatures = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const requestSections = useMemo(() => FEATURE_SECTIONS, []);
+
   const fetchConfig = useCallback(async () => {
     setLoading(true);
     try {
       const res = await API.get('/api/option/features', {
-        params: { sections: 'billing,governance,public_logs' },
+        params: { sections: requestSections },
+        paramsSerializer: (params) => serialiseSections(params.sections),
         skipErrorHandler: true,
       });
       if (res?.data?.success && res.data.data) {
@@ -62,11 +108,15 @@ export const useBillingFeatures = () => {
       }
     } catch (err) {
       setConfig(DEFAULT_CONFIG);
-      setError(err);
+      const normalisedError =
+        err instanceof Error
+          ? err
+          : new Error(err?.message || 'Failed to load configuration');
+      setError(normalisedError);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [requestSections]);
 
   useEffect(() => {
     fetchConfig();

@@ -18,6 +18,48 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var featureSectionAliases = map[string]string{
+	"billing":      "billing",
+	"finance":      "billing",
+	"fea_mance":    "billing",
+	"governance":   "governance",
+	"public_logs":  "public_logs",
+	"publiclog":    "public_logs",
+	"publiclogs":   "public_logs",
+	"public_log":   "public_logs",
+	"public-log":   "public_logs",
+	"public log":   "public_logs",
+	"public\tlogs": "public_logs",
+}
+
+func canonicalFeatureSection(raw string) (string, bool) {
+	trimmed := strings.TrimSpace(raw)
+	if trimmed == "" {
+		return "", false
+	}
+
+	normalised := strings.ToLower(trimmed)
+	normalised = strings.ReplaceAll(normalised, "-", "_")
+	normalised = strings.ReplaceAll(normalised, " ", "_")
+	normalised = strings.ReplaceAll(normalised, "\t", "_")
+	normalised = strings.Trim(normalised, "_")
+	if normalised == "" {
+		return "", false
+	}
+
+	if canonical, ok := featureSectionAliases[normalised]; ok {
+		return canonical, true
+	}
+
+	return normalised, true
+}
+
+func addFeatureSection(sectionSet map[string]struct{}, raw string) {
+	if canonical, ok := canonicalFeatureSection(raw); ok {
+		sectionSet[canonical] = struct{}{}
+	}
+}
+
 func parseFeatureSections(param string) map[string]struct{} {
 	sections := make(map[string]struct{})
 	if param == "" {
@@ -25,11 +67,25 @@ func parseFeatureSections(param string) map[string]struct{} {
 	}
 
 	for _, section := range strings.Split(param, ",") {
-		name := strings.TrimSpace(section)
-		if name == "" {
-			continue
+		addFeatureSection(sections, section)
+	}
+
+	return sections
+}
+
+func parseFeatureSectionsFromQuery(c *gin.Context) map[string]struct{} {
+	sections := make(map[string]struct{})
+
+	values := c.QueryArray("sections")
+	for _, value := range values {
+		addFeatureSection(sections, value)
+	}
+
+	if len(sections) == 0 {
+		legacy := c.Query("sections")
+		for _, value := range strings.Split(legacy, ",") {
+			addFeatureSection(sections, value)
 		}
-		sections[strings.ToLower(name)] = struct{}{}
 	}
 
 	return sections
@@ -97,7 +153,7 @@ func persistFeatureConfig(section string, cfg interface{}) error {
 
 // GetFeatureOptions returns non-sensitive feature flag configuration for billing/governance/public logs.
 func GetFeatureOptions(c *gin.Context) {
-	sectionSet := parseFeatureSections(c.Query("sections"))
+	sectionSet := parseFeatureSectionsFromQuery(c)
 	response := buildFeatureConfigResponse(sectionSet)
 	common.ApiSuccess(c, response)
 }
