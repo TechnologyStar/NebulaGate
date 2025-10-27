@@ -704,6 +704,122 @@ html.dark .with-pastel-balls::before {
   mix-blend-mode: screen;
 }
 
+/* ==================== Admin Console Cards - NebulaGate Aesthetic ==================== */
+.admin-card {
+  border-radius: 16px;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(var(--semi-blue-0), 0.08);
+  background: linear-gradient(
+    180deg,
+    rgba(var(--semi-blue-0), 0.04) 0%,
+    rgba(var(--semi-blue-0), 0.02) 100%
+  );
+  overflow: hidden;
+}
+
+html.dark .admin-card {
+  border-color: rgba(var(--semi-blue-0), 0.2);
+  background: linear-gradient(
+    180deg,
+    rgba(15, 23, 42, 0.85) 0%,
+    rgba(15, 23, 42, 0.6) 100%
+  );
+}
+
+.admin-card:hover {
+  box-shadow: 0 18px 40px rgba(2, 48, 84, 0.14);
+}
+
+.admin-card .semi-card-body {
+  padding: 20px;
+}
+
+/* Enhanced Modal Styling */
+.semi-modal-header {
+  border-bottom: 1px solid var(--semi-color-border);
+  padding: 20px 24px !important;
+}
+
+.semi-modal-footer {
+  border-top: 1px solid var(--semi-color-border);
+  padding: 16px 24px !important;
+}
+
+/* Enhanced Table Row Hover */
+.semi-table-row:hover {
+  background-color: rgba(var(--semi-blue-0), 0.04) !important;
+}
+
+/* Status Tags Enhancement */
+.semi-tag {
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+/* Nebula Admin Tabs */
+.nebula-admin-tabs {
+  background: linear-gradient(
+    180deg,
+    rgba(11, 40, 80, 0.04) 0%,
+    rgba(11, 40, 80, 0.02) 100%
+  );
+  border-radius: 16px;
+  padding: 12px;
+  box-shadow: inset 0 0 0 1px rgba(var(--semi-blue-0), 0.08);
+}
+
+html.dark .nebula-admin-tabs {
+  background: linear-gradient(
+    180deg,
+    rgba(100, 150, 220, 0.06) 0%,
+    rgba(100, 150, 220, 0.03) 100%
+  );
+}
+
+.nebula-admin-tabs .semi-tabs-bar {
+  margin-bottom: 16px;
+}
+
+.nebula-admin-tabs .semi-tabs-tab {
+  padding: 10px 16px;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.nebula-admin-tabs .semi-tabs-tab-active {
+  background-color: rgba(var(--semi-blue-0), 0.1);
+  box-shadow: 0 8px 20px rgba(var(--semi-blue-0), 0.12);
+}
+
+html.dark .nebula-admin-tabs .semi-tabs-tab-active {
+  background-color: rgba(var(--semi-blue-0), 0.18);
+}
+
+.nebula-admin-tabs .semi-tabs-content {
+  padding: 0;
+}
+
+/* Nebula Modal */
+.nebula-modal .semi-modal-content {
+  border-radius: 20px;
+  border: 1px solid rgba(var(--semi-blue-0), 0.08);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+}
+
+html.dark .nebula-modal .semi-modal-content {
+  border-color: rgba(var(--semi-blue-0), 0.16);
+  box-shadow: 0 24px 60px rgba(2, 6, 23, 0.4);
+}
+
+.nebula-modal .semi-modal-header .semi-modal-title {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.nebula-modal .semi-modal-footer .semi-button {
+  border-radius: 9999px;
+}
+
 /* ==================== 表格卡片滚动设置 ==================== */
 .table-scroll-card {
   display: flex;

@@ -56,11 +56,12 @@ const Audit = () => {
         type='card'
         activeKey={tabActiveKey}
         onChange={(key) => onChangeTab(key)}
+        className='nebula-admin-tabs'
       >
         <TabPane
           itemKey='usage'
           tab={
-            <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <span className='flex items-center gap-2'>
               <BarChart3 size={18} />
               {t('使用日志')}
             </span>
@@ -72,9 +73,7 @@ const Audit = () => {
           <TabPane
             itemKey='drawing'
             tab={
-              <span
-                style={{ display: 'flex', alignItems: 'center', gap: '5px' }}
-              >
+              <span className='flex items-center gap-2'>
                 <ImageIcon size={18} />
                 {t('绘图日志')}
               </span>
@@ -87,9 +86,7 @@ const Audit = () => {
           <TabPane
             itemKey='task'
             tab={
-              <span
-                style={{ display: 'flex', alignItems: 'center', gap: '5px' }}
-              >
+              <span className='flex items-center gap-2'>
                 <CheckSquare size={18} />
                 {t('任务日志')}
               </span>

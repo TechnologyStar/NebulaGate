@@ -142,7 +142,7 @@ const PlanUsagePanel = () => {
   }
 
   return (
-    <Card bordered>
+    <Card bordered className='!rounded-2xl'>
       <Typography.Title heading={4}>{t('订阅用量')}</Typography.Title>
       <Typography.Text type='tertiary'>
         {t('概览当前订阅计划的每日与每月剩余额度。')}

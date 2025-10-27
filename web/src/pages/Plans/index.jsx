@@ -160,6 +160,7 @@ const PlanFormModal = ({
       okText={t('保存套餐')}
       cancelText={t('取消')}
       maskClosable={false}
+      className='nebula-modal'
     >
       <Form
         layout='horizontal'
@@ -291,6 +292,7 @@ const VoucherModal = ({ visible, onCancel, onSubmit, loading, plans }) => {
       okText={t('生成卡券')}
       cancelText={t('取消')}
       maskClosable={false}
+      className='nebula-modal'
     >
       <Form
         layout='horizontal'
@@ -663,6 +665,8 @@ const PlansPage = () => {
   return (
     <div className='mt-[60px] px-2 space-y-6'>
       <Card
+        className='admin-card !rounded-2xl'
+        shadows='hover'
         title={
           <Space align='center'>
             <Title heading={5}>{t('套餐与卡券')}</Title>
@@ -674,6 +678,7 @@ const PlansPage = () => {
               icon={<RefreshCcw size={16} />}
               onClick={loadPlans}
               loading={planLoading}
+              className='!rounded-full'
             >
               {t('刷新')}
             </Button>
@@ -681,6 +686,7 @@ const PlansPage = () => {
               type='primary'
               icon={<Plus size={16} />}
               onClick={handleCreatePlan}
+              className='!rounded-full'
             >
               {t('创建套餐')}
             </Button>
@@ -698,6 +704,8 @@ const PlansPage = () => {
       </Card>
 
       <Card
+        className='admin-card !rounded-2xl'
+        shadows='hover'
         title={
           <Space align='center'>
             <Gift size={18} />
@@ -712,12 +720,14 @@ const PlansPage = () => {
               icon={<RefreshCcw size={16} />}
               onClick={loadVoucherBatches}
               loading={voucherLoading}
+              className='!rounded-full'
             >
               {t('刷新')}
             </Button>
             <Button
               icon={<Gift size={16} />}
               onClick={() => setVoucherModalVisible(true)}
+              className='!rounded-full'
             >
               {t('生成卡券')}
             </Button>
