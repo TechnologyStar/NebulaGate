@@ -78,7 +78,7 @@ const About = () => {
           rel='noopener noreferrer'
           className='!text-semi-color-primary'
         >
-          NewAPI
+          NebulaGate
         </a>{' '}
         {t('© {{currentYear}}', { currentYear })}{' '}
         <a
