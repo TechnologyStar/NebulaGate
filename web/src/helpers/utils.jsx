@@ -107,7 +107,7 @@ export function isRoot() {
 
 export function getSystemName() {
   const system_name = getLocalStorageItem('system_name');
-  if (!system_name) return 'New API';
+  if (!system_name) return 'NebulaGate';
   return system_name;
 }
 

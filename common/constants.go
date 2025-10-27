@@ -1,17 +1,17 @@
 package common
 
 import (
-	//"os"
-	//"strconv"
-	"sync"
-	"time"
+    //"os"
+    //"strconv"
+    "sync"
+    "time"
 
-	"github.com/google/uuid"
+    "github.com/google/uuid"
 )
 
 var StartTime = time.Now().Unix() // unit: second
 var Version = "v0.0.0"            // this hard coding will be replaced automatically when building, no need to manually change
-var SystemName = "New API"
+var SystemName = "NebulaGate"
 var Footer = ""
 var Logo = ""
 var TopUpLink = ""
@@ -53,19 +53,19 @@ var RegisterEnabled = true
 var EmailDomainRestrictionEnabled = false // 是否启用邮箱域名限制
 var EmailAliasRestrictionEnabled = false  // 是否启用邮箱别名限制
 var EmailDomainWhitelist = []string{
-	"gmail.com",
-	"163.com",
-	"126.com",
-	"qq.com",
-	"outlook.com",
-	"hotmail.com",
-	"icloud.com",
-	"yahoo.com",
-	"foxmail.com",
+    "gmail.com",
+    "163.com",
+    "126.com",
+    "qq.com",
+    "outlook.com",
+    "hotmail.com",
+    "icloud.com",
+    "yahoo.com",
+    "foxmail.com",
 }
 var EmailLoginAuthServerList = []string{
-	"smtp.sendcloud.net",
-	"smtp.azurecomm.net",
+    "smtp.sendcloud.net",
+    "smtp.azurecomm.net",
 }
 
 var DebugEnabled bool
@@ -127,77 +127,77 @@ var GeminiSafetySetting string
 var CohereSafetySetting string
 
 const (
-	RequestIdKey = "X-Oneapi-Request-Id"
+    RequestIdKey = "X-Oneapi-Request-Id"
 )
 
 const (
-	RoleGuestUser  = 0
-	RoleCommonUser = 1
-	RoleAdminUser  = 10
-	RoleRootUser   = 100
+    RoleGuestUser  = 0
+    RoleCommonUser = 1
+    RoleAdminUser  = 10
+    RoleRootUser   = 100
 )
 
 func IsValidateRole(role int) bool {
-	return role == RoleGuestUser || role == RoleCommonUser || role == RoleAdminUser || role == RoleRootUser
+    return role == RoleGuestUser || role == RoleCommonUser || role == RoleAdminUser || role == RoleRootUser
 }
 
 var (
-	FileUploadPermission    = RoleGuestUser
-	FileDownloadPermission  = RoleGuestUser
-	ImageUploadPermission   = RoleGuestUser
-	ImageDownloadPermission = RoleGuestUser
+    FileUploadPermission    = RoleGuestUser
+    FileDownloadPermission  = RoleGuestUser
+    ImageUploadPermission   = RoleGuestUser
+    ImageDownloadPermission = RoleGuestUser
 )
 
 // All duration's unit is seconds
 // Shouldn't larger then RateLimitKeyExpirationDuration
 var (
-	GlobalApiRateLimitEnable   bool
-	GlobalApiRateLimitNum      int
-	GlobalApiRateLimitDuration int64
+    GlobalApiRateLimitEnable   bool
+    GlobalApiRateLimitNum      int
+    GlobalApiRateLimitDuration int64
 
-	GlobalWebRateLimitEnable   bool
-	GlobalWebRateLimitNum      int
-	GlobalWebRateLimitDuration int64
+    GlobalWebRateLimitEnable   bool
+    GlobalWebRateLimitNum      int
+    GlobalWebRateLimitDuration int64
 
-	UploadRateLimitNum            = 10
-	UploadRateLimitDuration int64 = 60
+    UploadRateLimitNum            = 10
+    UploadRateLimitDuration int64 = 60
 
-	DownloadRateLimitNum            = 10
-	DownloadRateLimitDuration int64 = 60
+    DownloadRateLimitNum            = 10
+    DownloadRateLimitDuration int64 = 60
 
-	CriticalRateLimitNum            = 20
-	CriticalRateLimitDuration int64 = 20 * 60
+    CriticalRateLimitNum            = 20
+    CriticalRateLimitDuration int64 = 20 * 60
 )
 
 var RateLimitKeyExpirationDuration = 20 * time.Minute
 
 const (
-	UserStatusEnabled  = 1 // don't use 0, 0 is the default value!
-	UserStatusDisabled = 2 // also don't use 0
+    UserStatusEnabled  = 1 // don't use 0, 0 is the default value!
+    UserStatusDisabled = 2 // also don't use 0
 )
 
 const (
-	TokenStatusEnabled   = 1 // don't use 0, 0 is the default value!
-	TokenStatusDisabled  = 2 // also don't use 0
-	TokenStatusExpired   = 3
-	TokenStatusExhausted = 4
+    TokenStatusEnabled   = 1 // don't use 0, 0 is the default value!
+    TokenStatusDisabled  = 2 // also don't use 0
+    TokenStatusExpired   = 3
+    TokenStatusExhausted = 4
 )
 
 const (
-	RedemptionCodeStatusEnabled  = 1 // don't use 0, 0 is the default value!
-	RedemptionCodeStatusDisabled = 2 // also don't use 0
-	RedemptionCodeStatusUsed     = 3 // also don't use 0
+    RedemptionCodeStatusEnabled  = 1 // don't use 0, 0 is the default value!
+    RedemptionCodeStatusDisabled = 2 // also don't use 0
+    RedemptionCodeStatusUsed     = 3 // also don't use 0
 )
 
 const (
-	ChannelStatusUnknown          = 0
-	ChannelStatusEnabled          = 1 // don't use 0, 0 is the default value!
-	ChannelStatusManuallyDisabled = 2 // also don't use 0
-	ChannelStatusAutoDisabled     = 3
+    ChannelStatusUnknown          = 0
+    ChannelStatusEnabled          = 1 // don't use 0, 0 is the default value!
+    ChannelStatusManuallyDisabled = 2 // also don't use 0
+    ChannelStatusAutoDisabled     = 3
 )
 
 const (
-	TopUpStatusPending = "pending"
-	TopUpStatusSuccess = "success"
-	TopUpStatusExpired = "expired"
+    TopUpStatusPending = "pending"
+    TopUpStatusSuccess = "success"
+    TopUpStatusExpired = "expired"
 )

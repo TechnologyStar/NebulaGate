@@ -213,7 +213,7 @@ const FooterBar = () => {
               rel='noopener noreferrer'
               className='!text-semi-color-primary font-medium'
             >
-              New API
+              NebulaGate
             </a>
           </div>
         </div>
@@ -242,7 +242,7 @@ const FooterBar = () => {
               rel='noopener noreferrer'
               className='!text-semi-color-primary font-medium'
             >
-              New API
+              NebulaGate
             </a>
           </div>
         </div>
