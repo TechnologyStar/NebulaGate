@@ -75,6 +75,7 @@ import {
   CircleUser,
   Package,
   ClipboardList,
+  ShieldCheck,
 } from 'lucide-react';
 
 // 获取侧边栏Lucide图标组件
@@ -117,6 +118,8 @@ export function getLucideIcon(key, selected = false) {
       return <Gift {...commonProps} color={iconColor} />;
     case 'plans':
       return <ClipboardList {...commonProps} color={iconColor} />;
+    case 'audit':
+      return <ShieldCheck {...commonProps} color={iconColor} />;
     case 'user':
     case 'personal':
       return <User {...commonProps} color={iconColor} />;

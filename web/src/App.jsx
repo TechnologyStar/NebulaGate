@@ -51,6 +51,7 @@ import SetupCheck from './components/layout/SetupCheck';
 import VoucherRedeem from './pages/Setting/VoucherRedeem';
 import CheckIn from './pages/CheckIn';
 import Lottery from './pages/Lottery';
+import Audit from './pages/Audit';
 
 const Home = lazy(() => import('./pages/Home'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -136,6 +137,14 @@ function App() {
             <PrivateRoute>
               <Token />
             </PrivateRoute>
+          }
+        />
+        <Route
+          path='/console/audit'
+          element={
+            <AdminRoute>
+              <Audit />
+            </AdminRoute>
           }
         />
         <Route

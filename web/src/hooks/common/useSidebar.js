@@ -65,6 +65,7 @@ export const useSidebar = () => {
       models: true,
       redemption: true,
       plans: true,
+      audit: true,
       user: true,
       setting: true,
     },

@@ -52,6 +52,7 @@ const routerMap = {
   personal: '/console/personal',
   checkin: '/console/checkin',
   lottery: '/console/lottery',
+  audit: '/console/audit',
 };
 
 const SiderBar = ({ onNavigate = () => {} }) => {
@@ -93,11 +94,6 @@ const SiderBar = ({ onNavigate = () => {} }) => {
         to: '/log',
       },
       {
-        text: t('使用排行榜'),
-        itemKey: 'leaderboard',
-        to: '/leaderboard',
-      },
-      {
         text: t('绘图日志'),
         itemKey: 'midjourney',
         to: '/midjourney',
@@ -129,6 +125,23 @@ const SiderBar = ({ onNavigate = () => {} }) => {
     t,
     isModuleVisible,
   ]);
+
+  const highlightItems = useMemo(() => {
+    const items = [
+      {
+        text: t('使用排行榜'),
+        itemKey: 'leaderboard',
+        to: '/leaderboard',
+      },
+    ];
+
+    const filteredItems = items.filter((item) => {
+      const configVisible = isModuleVisible('console', item.itemKey);
+      return configVisible;
+    });
+
+    return filteredItems;
+  }, [t, isModuleVisible]);
 
   const financeItems = useMemo(() => {
     const items = [
@@ -192,6 +205,12 @@ const SiderBar = ({ onNavigate = () => {} }) => {
         text: t('套餐与卡券'),
         itemKey: 'plans',
         to: '/plans',
+        className: isAdmin() ? '' : 'tableHiddle',
+      },
+      {
+        text: t('审计日志'),
+        itemKey: 'audit',
+        to: '/audit',
         className: isAdmin() ? '' : 'tableHiddle',
       },
       {
@@ -457,20 +476,31 @@ const SiderBar = ({ onNavigate = () => {} }) => {
             setOpenedKeys(data.openKeys);
           }}
         >
+          {highlightItems.length > 0 &&
+            highlightItems.map((item) => renderNavItem(item))}
+
           {/* 聊天区域 */}
           {hasSectionVisibleModules('chat') && (
-            <div className='sidebar-section'>
-              {!collapsed && (
-                <div className='sidebar-group-label'>{t('聊天')}</div>
+            <>
+              {highlightItems.length > 0 && (
+                <Divider className='sidebar-divider' />
               )}
-              {chatMenuItems.map((item) => renderSubItem(item))}
-            </div>
+              <div className='sidebar-section'>
+                {!collapsed && (
+                  <div className='sidebar-group-label'>{t('聊天')}</div>
+                )}
+                {chatMenuItems.map((item) => renderSubItem(item))}
+              </div>
+            </>
           )}
 
           {/* 控制台区域 */}
           {hasSectionVisibleModules('console') && (
             <>
-              <Divider className='sidebar-divider' />
+              {(highlightItems.length > 0 ||
+                hasSectionVisibleModules('chat')) && (
+                <Divider className='sidebar-divider' />
+              )}
               <div>
                 {!collapsed && (
                   <div className='sidebar-group-label'>{t('控制台')}</div>
