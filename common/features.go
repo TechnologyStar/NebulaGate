@@ -5,12 +5,12 @@ package common
 
 var (
     // Billing
-    BillingFeatureEnabled     bool   = false
+    BillingFeatureEnabled     bool   = true
     BillingDefaultMode        string = BillingModeBalance
     BillingAutoFallbackEnabled bool  = false
 
     // Governance
-    GovernanceFeatureEnabled  bool   = false
+    GovernanceFeatureEnabled  bool   = true
     GovernanceAbuseRPMThreshold int    = 3000
     GovernanceRerouteModelAlias string = ""
 

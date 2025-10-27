@@ -98,7 +98,19 @@ func SetApiRouter(router *gin.Engine) {
                 selfRoute.POST("/2fa/enable", controller.Enable2FA)
                 selfRoute.POST("/2fa/disable", controller.Disable2FA)
                 selfRoute.POST("/2fa/backup_codes", controller.RegenerateBackupCodes)
-            }
+
+                // Check-in routes
+                selfRoute.POST("/checkin", controller.CheckIn)
+                selfRoute.GET("/checkin/status", controller.GetCheckInStatus)
+                selfRoute.GET("/checkin/history", controller.GetCheckInHistory)
+
+                // Lottery routes
+                selfRoute.POST("/lottery/draw", controller.DrawLottery)
+                selfRoute.GET("/lottery/records", controller.GetLotteryRecords)
+
+                // User stats
+                selfRoute.GET("/stats", controller.GetUserStats)
+                }
 
             adminRoute := userRoute.Group("/")
             adminRoute.Use(middleware.AdminAuth())
@@ -215,6 +227,7 @@ func SetApiRouter(router *gin.Engine) {
         {
             leaderboardAdmin.GET("/", controller.GetAdminLeaderboard)
             leaderboardAdmin.GET("/export", controller.ExportAdminLeaderboard)
+            leaderboardAdmin.GET("/users", controller.GetUserLeaderboard)
         }
 
         logAdmin := apiRouter.Group("/log")
@@ -222,6 +235,16 @@ func SetApiRouter(router *gin.Engine) {
         {
             logAdmin.GET("/ip-usage/token/:id", controller.GetTokenIPUsage)
             logAdmin.GET("/ip-usage/user/:id", controller.GetUserIPUsage)
+        }
+
+        lotteryRoute := apiRouter.Group("/lottery")
+        lotteryRoute.Use(middleware.AdminAuth())
+        {
+            lotteryRoute.GET("/configs", controller.GetLotteryConfigs)
+            lotteryRoute.POST("/configs", controller.CreateLotteryConfig)
+            lotteryRoute.PUT("/configs/:id", controller.UpdateLotteryConfig)
+            lotteryRoute.DELETE("/configs/:id", controller.DeleteLotteryConfig)
+            lotteryRoute.GET("/records", controller.GetAllLotteryRecords)
         }
 
         usageRoute := apiRouter.Group("/usage")
