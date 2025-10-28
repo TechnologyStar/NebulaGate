@@ -59,7 +59,7 @@ const Setting = () => {
   if (isRoot()) {
     panes.push({
       tab: (
-        <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+        <span className='flex items-center gap-2'>
           <Settings size={18} />
           {t('运营设置')}
         </span>
@@ -69,7 +69,7 @@ const Setting = () => {
     });
     panes.push({
       tab: (
-        <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+        <span className='flex items-center gap-2'>
           <LayoutDashboard size={18} />
           {t('仪表盘设置')}
         </span>
@@ -79,7 +79,7 @@ const Setting = () => {
     });
     panes.push({
       tab: (
-        <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+        <span className='flex items-center gap-2'>
           <MessageSquare size={18} />
           {t('聊天设置')}
         </span>
@@ -89,7 +89,7 @@ const Setting = () => {
     });
     panes.push({
       tab: (
-        <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+        <span className='flex items-center gap-2'>
           <Palette size={18} />
           {t('绘图设置')}
         </span>
@@ -99,7 +99,7 @@ const Setting = () => {
     });
     panes.push({
       tab: (
-        <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+        <span className='flex items-center gap-2'>
           <CreditCard size={18} />
           {t('支付设置')}
         </span>
@@ -109,7 +109,7 @@ const Setting = () => {
     });
     panes.push({
       tab: (
-        <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+        <span className='flex items-center gap-2'>
           <ShieldCheck size={18} />
           {t('计费与治理设置')}
         </span>
@@ -119,7 +119,7 @@ const Setting = () => {
     });
     panes.push({
       tab: (
-        <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+        <span className='flex items-center gap-2'>
           <Calculator size={18} />
           {t('分组与模型定价设置')}
         </span>
@@ -129,7 +129,7 @@ const Setting = () => {
     });
     panes.push({
       tab: (
-        <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+        <span className='flex items-center gap-2'>
           <Gauge size={18} />
           {t('速率限制设置')}
         </span>
@@ -139,7 +139,7 @@ const Setting = () => {
     });
     panes.push({
       tab: (
-        <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+        <span className='flex items-center gap-2'>
           <Shapes size={18} />
           {t('模型相关设置')}
         </span>
@@ -149,7 +149,7 @@ const Setting = () => {
     });
     panes.push({
       tab: (
-        <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+        <span className='flex items-center gap-2'>
           <Cog size={18} />
           {t('系统设置')}
         </span>
@@ -159,7 +159,7 @@ const Setting = () => {
     });
     panes.push({
       tab: (
-        <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+        <span className='flex items-center gap-2'>
           <MoreHorizontal size={18} />
           {t('其他设置')}
         </span>
@@ -190,6 +190,7 @@ const Setting = () => {
             collapsible
             activeKey={tabActiveKey}
             onChange={(key) => onChangeTab(key)}
+            className='nebula-admin-tabs'
           >
             {panes.map((pane) => (
               <TabPane itemKey={pane.itemKey} tab={pane.tab} key={pane.itemKey}>
