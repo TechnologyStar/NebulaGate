@@ -185,6 +185,7 @@ const PageLayout = () => {
           }}
         >
           <Content
+            className={`nebula-surface ${isConsoleRoute ? 'nebula-console-surface' : ''} ${shouldInnerPadding ? 'nebula-surface--padded' : ''}`.trim()}
             style={{
               flex: '1 0 auto',
               overflowY: isMobile ? 'visible' : 'hidden',

@@ -100,7 +100,7 @@ const CheckIn = () => {
   };
 
   return (
-    <div className='mt-[60px] px-2 max-w-4xl mx-auto'>
+    <div className='nebula-console-container max-w-4xl mx-auto'>
       <Card>
         <div className='text-center py-8'>
           <IconGift size='extra-large' style={{ fontSize: 64, color: '#F7BA1E' }} />

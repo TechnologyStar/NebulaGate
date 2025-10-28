@@ -34,19 +34,19 @@ const StatsCards = ({
   const { t } = useTranslation();
   return (
     <div className='mb-4'>
-      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
+      <div className='nebula-stats-grid'>
         {groupedStatsData.map((group, idx) => (
           <Card
             key={idx}
             {...CARD_PROPS}
-            className={`${group.color} border-0 !rounded-2xl w-full`}
-            title={group.title}
+            className={`${group.color} nebula-card border-0 w-full`}
+            title={<span className='nebula-heading-3'>{group.title}</span>}
           >
             <div className='space-y-4'>
               {group.items.map((item, itemIdx) => (
                 <div
                   key={itemIdx}
-                  className='flex items-center justify-between cursor-pointer'
+                  className='flex items-center justify-between cursor-pointer transition-opacity hover:opacity-80'
                   onClick={item.onClick}
                 >
                   <div className='flex items-center'>
@@ -58,7 +58,7 @@ const StatsCards = ({
                       {item.icon}
                     </Avatar>
                     <div>
-                      <div className='text-xs text-gray-500'>{item.title}</div>
+                      <div className='nebula-caption'>{item.title}</div>
                       <div className='text-lg font-semibold'>
                         <Skeleton
                           loading={loading}

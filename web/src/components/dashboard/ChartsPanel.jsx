@@ -38,28 +38,30 @@ const ChartsPanel = ({
   return (
     <Card
       {...CARD_PROPS}
-      className={`!rounded-2xl ${hasApiInfoPanel ? 'lg:col-span-3' : ''}`}
+      className={`nebula-card ${hasApiInfoPanel ? 'lg:col-span-3' : ''}`}
       title={
         <div className='flex flex-col lg:flex-row lg:items-center lg:justify-between w-full gap-3'>
-          <div className={FLEX_CENTER_GAP2}>
-            <PieChart size={16} />
+          <div className={`${FLEX_CENTER_GAP2} nebula-heading-3`}>
+            <PieChart size={18} />
             {t('模型数据分析')}
           </div>
-          <Tabs
-            type='slash'
-            activeKey={activeChartTab}
-            onChange={setActiveChartTab}
-          >
-            <TabPane tab={<span>{t('消耗分布')}</span>} itemKey='1' />
-            <TabPane tab={<span>{t('消耗趋势')}</span>} itemKey='2' />
-            <TabPane tab={<span>{t('调用次数分布')}</span>} itemKey='3' />
-            <TabPane tab={<span>{t('调用次数排行')}</span>} itemKey='4' />
-          </Tabs>
+          <div className='nebula-tabs inline-block'>
+            <Tabs
+              type='button'
+              activeKey={activeChartTab}
+              onChange={setActiveChartTab}
+            >
+              <TabPane tab={<span>{t('消耗分布')}</span>} itemKey='1' />
+              <TabPane tab={<span>{t('消耗趋势')}</span>} itemKey='2' />
+              <TabPane tab={<span>{t('调用次数分布')}</span>} itemKey='3' />
+              <TabPane tab={<span>{t('调用次数排行')}</span>} itemKey='4' />
+            </Tabs>
+          </div>
         </div>
       }
       bodyStyle={{ padding: 0 }}
     >
-      <div className='h-96 p-2'>
+      <div className='nebula-chart-container'>
         {activeChartTab === '1' && (
           <VChart spec={spec_line} option={CHART_CONFIG} />
         )}

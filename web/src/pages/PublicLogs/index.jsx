@@ -217,7 +217,7 @@ const PublicLogsPage = () => {
 
   if (configLoading) {
     return (
-      <div className='mt-[60px] px-2 pb-6'>
+      <div className='nebula-console-container'>
         <Card loading></Card>
       </div>
     );
@@ -225,7 +225,7 @@ const PublicLogsPage = () => {
 
   if (error) {
     return (
-      <div className='mt-[60px] px-2 pb-6'>
+      <div className='nebula-console-container'>
         <Card bordered>
           <Space vertical align='center' className='w-full'>
             <Empty description={t('计费配置加载失败，暂时无法展示公开日志')} />
@@ -240,14 +240,14 @@ const PublicLogsPage = () => {
 
   if (!publicLogsEnabled) {
     return (
-      <div className='mt-[60px] px-2 pb-6'>
+      <div className='nebula-console-container'>
         <Empty description={t('公开日志已禁用')} />
       </div>
     );
   }
 
   return (
-    <div className='mt-[60px] px-2 pb-6 space-y-4'>
+    <div className='nebula-console-container space-y-4'>
       <Card bordered>
         <Form
           layout='horizontal'
