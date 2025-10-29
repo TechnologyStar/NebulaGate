@@ -19,6 +19,7 @@ For commercial licensing, please contact support@quantumnous.com
 
 export default {
   content: ['./index.html', './src/**/*.{js,jsx,ts,tsx}'],
+  darkMode: 'class',
   theme: {
     colors: {
       'semi-color-white': 'var(--semi-color-white)',
@@ -142,6 +143,37 @@ export default {
         'semi-border-radius-large': 'var(--semi-border-radius-large)',
         'semi-border-radius-circle': 'var(--semi-border-radius-circle)',
         'semi-border-radius-full': 'var(--semi-border-radius-full)',
+        'nebula-radius-sm': 'var(--nebula-radius-sm)',
+        'nebula-radius-md': 'var(--nebula-radius-md)',
+        'nebula-radius-lg': 'var(--nebula-radius-lg)',
+        'nebula-radius-xl': 'var(--nebula-radius-xl)',
+      },
+      spacing: {
+        'nebula-xs': 'var(--nebula-spacing-xs)',
+        'nebula-sm': 'var(--nebula-spacing-sm)',
+        'nebula-md': 'var(--nebula-spacing-md)',
+        'nebula-lg': 'var(--nebula-spacing-lg)',
+        'nebula-xl': 'var(--nebula-spacing-xl)',
+        'nebula-2xl': 'var(--nebula-spacing-2xl)',
+      },
+      fontSize: {
+        'nebula-xs': 'var(--nebula-text-xs)',
+        'nebula-sm': 'var(--nebula-text-sm)',
+        'nebula-base': 'var(--nebula-text-base)',
+        'nebula-lg': 'var(--nebula-text-lg)',
+        'nebula-xl': 'var(--nebula-text-xl)',
+        'nebula-2xl': 'var(--nebula-text-2xl)',
+        'nebula-3xl': 'var(--nebula-text-3xl)',
+      },
+      boxShadow: {
+        'nebula-sm': 'var(--nebula-shadow-sm)',
+        'nebula-md': 'var(--nebula-shadow-md)',
+        'nebula-lg': 'var(--nebula-shadow-lg)',
+        'nebula-xl': 'var(--nebula-shadow-xl)',
+        'nebula-dark-sm': 'var(--nebula-shadow-dark-sm)',
+        'nebula-dark-md': 'var(--nebula-shadow-dark-md)',
+        'nebula-dark-lg': 'var(--nebula-shadow-dark-lg)',
+        'nebula-dark-xl': 'var(--nebula-shadow-dark-xl)',
       },
     },
   },
