@@ -239,7 +239,7 @@ const VoucherRedeem = () => {
 
   if (configLoading) {
     return (
-      <div className='mt-[60px] px-2 pb-6'>
+      <div className='nebula-console-container'>
         <Skeleton loading>
           <div className='h-[120px] rounded-lg bg-[var(--semi-color-fill-0)]' />
         </Skeleton>
@@ -249,7 +249,7 @@ const VoucherRedeem = () => {
 
   if (error) {
     return (
-      <div className='mt-[60px] px-2 pb-6'>
+      <div className='nebula-console-container'>
         <Card bordered>
           <Space direction='vertical' align='center' className='w-full'>
             <Empty description={t('计费配置加载失败，无法使用兑换码功能')} />
@@ -264,14 +264,14 @@ const VoucherRedeem = () => {
 
   if (!billingEnabled) {
     return (
-      <div className='mt-[60px] px-2 pb-6'>
+      <div className='nebula-console-container'>
         <Empty description={t('计费功能未启用，无法使用兑换码功能。')} />
       </div>
     );
   }
 
   return (
-    <div className='mt-[60px] px-2 pb-6 space-y-4'>
+    <div className='nebula-console-container space-y-4'>
       <Card bordered>
         <Space vertical spacing='medium' className='w-full'>
           <Typography.Title heading={4}>{t('兑换卡券')}</Typography.Title>

@@ -85,7 +85,7 @@ const Lottery = () => {
   };
 
   return (
-    <div className='mt-[60px] px-2 max-w-4xl mx-auto'>
+    <div className='nebula-console-container max-w-4xl mx-auto'>
       <Card>
         <div className='text-center py-8'>
           <div className='relative inline-block'>
