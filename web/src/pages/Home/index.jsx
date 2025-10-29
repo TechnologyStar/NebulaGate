@@ -157,33 +157,48 @@ const Home = () => {
       />
       {homePageContentLoaded && homePageContent === '' ? (
         <div className='w-full overflow-x-hidden'>
-          {/* Banner 部分 */}
-          <div className='w-full border-b border-semi-color-border min-h-[500px] md:min-h-[600px] lg:min-h-[700px] relative overflow-x-hidden'>
-            {/* 背景模糊晕染球 */}
+          {/* Hero Banner Section */}
+          <div className='w-full border-b border-semi-color-border min-h-[600px] md:min-h-[700px] lg:min-h-[800px] relative overflow-x-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-teal-50 dark:from-slate-900 dark:via-blue-950 dark:to-teal-950'>
+            {/* Background blur orbs */}
             <div className='blur-ball blur-ball-indigo' />
             <div className='blur-ball blur-ball-teal' />
-            <div className='flex items-center justify-center h-full px-4 py-20 md:py-24 lg:py-32 mt-10'>
-              {/* 居中内容区 */}
-              <div className='flex flex-col items-center justify-center text-center max-w-4xl mx-auto'>
-                <div className='flex flex-col items-center justify-center mb-6 md:mb-8'>
+            <div className='flex items-center justify-center h-full px-4 py-24 md:py-32 lg:py-40 mt-10'>
+              {/* Center content area */}
+              <div className='flex flex-col items-center justify-center text-center max-w-5xl mx-auto'>
+                <div className='flex flex-col items-center justify-center mb-8 md:mb-10'>
+                  {/* Brand badge */}
+                  <div className='mb-6 md:mb-8'>
+                    <span className='inline-flex items-center px-4 py-2 rounded-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-blue-200/50 dark:border-blue-700/50 text-sm font-medium text-blue-700 dark:text-blue-300 shadow-sm'>
+                      <svg className='w-4 h-4 mr-2' fill='currentColor' viewBox='0 0 20 20'>
+                        <path fillRule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z' clipRule='evenodd' />
+                      </svg>
+                      {t('企业级AI模型网关')}
+                    </span>
+                  </div>
+
                   <h1
-                    className={`text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-semi-color-text-0 leading-tight ${isChinese ? 'tracking-wide md:tracking-wider' : ''}`}
+                    className={`text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-teal-600 to-indigo-600 dark:from-blue-400 dark:via-teal-400 dark:to-indigo-400 leading-tight mb-6 ${isChinese ? 'tracking-wide md:tracking-wider' : ''}`}
                   >
                     {i18n.language === 'en' ? (
                       <>
                         The Unified
                         <br />
-                        <span className='shine-text'>LLMs API Gateway</span>
+                        <span className='shine-text'>AI Gateway</span>
                       </>
                     ) : (
                       <>
                         统一的
                         <br />
-                        <span className='shine-text'>大模型接口网关</span>
+                        <span className='shine-text'>AI 模型网关</span>
                       </>
                     )}
                   </h1>
-                  <p className='text-base md:text-lg lg:text-xl text-semi-color-text-1 mt-4 md:mt-6 max-w-xl'>
+                  
+                  <p className='text-lg md:text-xl lg:text-2xl text-semi-color-text-1 dark:text-slate-300 mt-4 md:mt-6 max-w-2xl font-light leading-relaxed'>
+                    {t('企业级稳定性，透明化定价，一键接入多家AI模型')}
+                  </p>
+                  
+                  <p className='text-base md:text-lg text-semi-color-text-2 mt-3 max-w-xl'>
                     {t('更好的价格，更好的稳定性，只需要将模型基址替换为：')}
                   </p>
                   {/* BASE URL 与端点选择 */}
@@ -219,14 +234,14 @@ const Home = () => {
                   </div>
                 </div>
 
-                {/* 操作按钮 */}
-                <div className='flex flex-row gap-4 justify-center items-center'>
+                {/* Action buttons */}
+                <div className='flex flex-col sm:flex-row gap-4 justify-center items-center mt-8'>
                   <Link to='/console'>
                     <Button
                       theme='solid'
                       type='primary'
-                      size={isMobile ? 'default' : 'large'}
-                      className='!rounded-3xl px-8 py-2'
+                      size={isMobile ? 'large' : 'large'}
+                      className='!rounded-3xl px-10 py-3 shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700'
                       icon={<IconPlay />}
                     >
                       {t('获取密钥')}
@@ -234,8 +249,8 @@ const Home = () => {
                   </Link>
                   {isDemoSiteMode && statusState?.status?.version ? (
                     <Button
-                      size={isMobile ? 'default' : 'large'}
-                      className='flex items-center !rounded-3xl px-6 py-2'
+                      size={isMobile ? 'large' : 'large'}
+                      className='flex items-center !rounded-3xl px-8 py-3 border-2 border-blue-200 dark:border-blue-800 hover:border-blue-300 dark:hover:border-blue-700 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm hover:bg-white dark:hover:bg-slate-800 transition-all duration-300'
                       icon={<IconGithubLogo />}
                       onClick={() =>
                         window.open(
@@ -249,8 +264,8 @@ const Home = () => {
                   ) : (
                     docsLink && (
                       <Button
-                        size={isMobile ? 'default' : 'large'}
-                        className='flex items-center !rounded-3xl px-6 py-2'
+                        size={isMobile ? 'large' : 'large'}
+                        className='flex items-center !rounded-3xl px-8 py-3 border-2 border-blue-200 dark:border-blue-800 hover:border-blue-300 dark:hover:border-blue-700 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm hover:bg-white dark:hover:bg-slate-800 transition-all duration-300'
                         icon={<IconFile />}
                         onClick={() => window.open(docsLink, '_blank')}
                       >
