@@ -153,7 +153,9 @@ const DocumentRenderer = ({ apiEndpoint, title, cacheKey, emptyMessage }) => {
   // 显示加载状态
   if (loading) {
     return (
-      <div className='flex justify-center items-center min-h-screen'>
+      <div className='relative overflow-hidden min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-teal-50 dark:from-slate-900 dark:via-slate-950 dark:to-cyan-950 flex justify-center items-center'>
+        <div className='blur-ball blur-ball-indigo' style={{ top: '-120px', left: '50%' }} />
+        <div className='blur-ball blur-ball-teal' style={{ bottom: '-120px', right: '-80px' }} />
         <Spin size='large' />
       </div>
     );
@@ -162,12 +164,14 @@ const DocumentRenderer = ({ apiEndpoint, title, cacheKey, emptyMessage }) => {
   // 如果没有内容，显示空状态
   if (!content || content.trim() === '') {
     return (
-      <div className='flex justify-center items-center min-h-screen bg-gray-50'>
+      <div className='relative overflow-hidden min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-teal-50 dark:from-slate-900 dark:via-slate-950 dark:to-cyan-950 flex justify-center items-center pt-20 pb-12 px-4'>
+        <div className='blur-ball blur-ball-indigo' style={{ top: '-120px', right: '-80px' }} />
+        <div className='blur-ball blur-ball-teal' style={{ bottom: '-120px', left: '-100px' }} />
         <Empty
           title={t('管理员未设置' + title + '内容')}
           image={<IllustrationConstruction style={{ width: 150, height: 150 }} />}
           darkModeImage={<IllustrationConstructionDark style={{ width: 150, height: 150 }} />}
-          className='p-8'
+          className='bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm rounded-3xl shadow-xl border border-blue-100/40 dark:border-blue-900/40 p-8'
         />
       </div>
     );
@@ -176,11 +180,13 @@ const DocumentRenderer = ({ apiEndpoint, title, cacheKey, emptyMessage }) => {
   // 如果是 URL，显示链接卡片
   if (isUrl(content)) {
     return (
-      <div className='flex justify-center items-center min-h-screen bg-gray-50 p-4'>
-        <Card className='max-w-md w-full'>
-          <div className='text-center'>
-            <Title heading={4} className='mb-4'>{title}</Title>
-            <p className='text-gray-600 mb-4'>
+      <div className='relative overflow-hidden min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-teal-50 dark:from-slate-900 dark:via-slate-950 dark:to-cyan-950 flex justify-center items-center pt-20 pb-12 px-4'>
+        <div className='blur-ball blur-ball-indigo' style={{ top: '-120px', right: '-80px' }} />
+        <div className='blur-ball blur-ball-teal' style={{ bottom: '-120px', left: '-100px' }} />
+        <Card className='max-w-md w-full bg-white/80 dark:bg-slate-900/70 backdrop-blur-md rounded-3xl shadow-2xl border border-blue-100/40 dark:border-blue-900/40'>
+          <div className='text-center p-6'>
+            <Title heading={3} className='mb-6 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-teal-600 dark:from-blue-400 dark:to-teal-400'>{title}</Title>
+            <p className='text-semi-color-text-2 mb-6 leading-relaxed'>
               {t('管理员设置了外部链接，点击下方按钮访问')}
             </p>
             <a
@@ -189,9 +195,12 @@ const DocumentRenderer = ({ apiEndpoint, title, cacheKey, emptyMessage }) => {
               rel='noopener noreferrer'
               title={content.trim()}
               aria-label={`${t('访问' + title)}: ${content.trim()}`}
-              className='inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors'
+              className='inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-teal-600 text-white rounded-full hover:from-blue-700 hover:to-teal-700 transition-all duration-300 shadow-lg hover:shadow-xl font-medium'
             >
-              {t('访问' + title)}
+              <span>{t('访问' + title)}</span>
+              <svg className='w-5 h-5 ml-2' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14' />
+              </svg>
             </a>
           </div>
         </Card>
@@ -211,12 +220,14 @@ const DocumentRenderer = ({ apiEndpoint, title, cacheKey, emptyMessage }) => {
     }, [content, styles, htmlStyles]);
     
     return (
-      <div className='min-h-screen bg-gray-50'>
-        <div className='max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8'>
-          <div className='bg-white rounded-lg shadow-sm p-8'>
-            <Title heading={2} className='text-center mb-8'>{title}</Title>
+      <div className='relative overflow-hidden min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-teal-50 dark:from-slate-900 dark:via-slate-950 dark:to-cyan-950 pt-[80px] pb-20 px-4'>
+        <div className='blur-ball blur-ball-indigo' style={{ top: '-120px', right: '-80px' }} />
+        <div className='blur-ball blur-ball-teal' style={{ bottom: '-120px', left: '-100px' }} />
+        <div className='relative max-w-5xl mx-auto'>
+          <div className='bg-white/80 dark:bg-slate-900/70 backdrop-blur-md rounded-3xl shadow-2xl border border-blue-100/40 dark:border-blue-900/40 p-8 sm:p-10 lg:p-12'>
+            <Title heading={2} className='text-center mb-10 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-teal-600 dark:from-blue-400 dark:to-teal-400'>{title}</Title>
             <div 
-              className='prose prose-lg max-w-none'
+              className='prose prose-lg max-w-none text-slate-700 dark:text-slate-200 prose-headings:text-semi-color-text-0 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline'
               dangerouslySetInnerHTML={{ __html: htmlContent }}
             />
           </div>
@@ -227,11 +238,13 @@ const DocumentRenderer = ({ apiEndpoint, title, cacheKey, emptyMessage }) => {
 
   // 其他内容统一使用 Markdown 渲染器
   return (
-    <div className='min-h-screen bg-gray-50'>
-      <div className='max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8'>
-        <div className='bg-white rounded-lg shadow-sm p-8'>
-          <Title heading={2} className='text-center mb-8'>{title}</Title>
-          <div className='prose prose-lg max-w-none'>
+    <div className='relative overflow-hidden min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-teal-50 dark:from-slate-900 dark:via-slate-950 dark:to-cyan-950 pt-[80px] pb-20 px-4'>
+      <div className='blur-ball blur-ball-indigo' style={{ top: '-120px', right: '-80px' }} />
+      <div className='blur-ball blur-ball-teal' style={{ bottom: '-120px', left: '-100px' }} />
+      <div className='relative max-w-5xl mx-auto'>
+        <div className='bg-white/80 dark:bg-slate-900/70 backdrop-blur-md rounded-3xl shadow-2xl border border-blue-100/40 dark:border-blue-900/40 p-8 sm:p-10 lg:p-12'>
+          <Title heading={2} className='text-center mb-10 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-teal-600 dark:from-blue-400 dark:to-teal-400'>{title}</Title>
+          <div className='prose prose-lg max-w-none text-slate-700 dark:text-slate-200 prose-headings:text-semi-color-text-0 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline'>
             <MarkdownRenderer content={content} />
           </div>
         </div>
