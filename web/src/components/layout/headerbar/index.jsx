@@ -65,7 +65,7 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
   const { mainNavLinks } = useNavigation(t, docsLink, headerNavModules);
 
   return (
-    <header className='text-semi-color-text-0 sticky top-0 z-50 transition-colors duration-300 bg-white/75 dark:bg-zinc-900/75 backdrop-blur-lg'>
+    <header className='nebula-header fixed top-0 left-0 right-0 z-50'>
       <NoticeModal
         visible={noticeVisible}
         onClose={handleNoticeClose}
@@ -74,56 +74,54 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
         unreadKeys={getUnreadKeys()}
       />
 
-      <div className='w-full px-2'>
-        <div className='flex items-center justify-between h-16'>
-          <div className='flex items-center'>
-            <MobileMenuButton
-              isConsoleRoute={isConsoleRoute}
-              isMobile={isMobile}
-              drawerOpen={drawerOpen}
-              collapsed={collapsed}
-              onToggle={handleMobileMenuToggle}
-              t={t}
-            />
-
-            <HeaderLogo
-              isMobile={isMobile}
-              isConsoleRoute={isConsoleRoute}
-              logo={logo}
-              logoLoaded={logoLoaded}
-              isLoading={isLoading}
-              systemName={systemName}
-              isSelfUseMode={isSelfUseMode}
-              isDemoSiteMode={isDemoSiteMode}
-              t={t}
-            />
-          </div>
-
-          <Navigation
-            mainNavLinks={mainNavLinks}
+      <div className='nebula-header-container'>
+        <div className='flex items-center gap-2 md:gap-3'>
+          <MobileMenuButton
+            isConsoleRoute={isConsoleRoute}
             isMobile={isMobile}
-            isLoading={isLoading}
-            userState={userState}
-            pricingRequireAuth={pricingRequireAuth}
+            drawerOpen={drawerOpen}
+            collapsed={collapsed}
+            onToggle={handleMobileMenuToggle}
+            t={t}
           />
 
-          <ActionButtons
-            isNewYear={isNewYear}
-            unreadCount={unreadCount}
-            onNoticeOpen={handleNoticeOpen}
-            theme={theme}
-            onThemeToggle={handleThemeToggle}
-            currentLang={currentLang}
-            onLanguageChange={handleLanguageChange}
-            userState={userState}
-            isLoading={isLoading}
+          <HeaderLogo
             isMobile={isMobile}
+            isConsoleRoute={isConsoleRoute}
+            logo={logo}
+            logoLoaded={logoLoaded}
+            isLoading={isLoading}
+            systemName={systemName}
             isSelfUseMode={isSelfUseMode}
-            logout={logout}
-            navigate={navigate}
+            isDemoSiteMode={isDemoSiteMode}
             t={t}
           />
         </div>
+
+        <Navigation
+          mainNavLinks={mainNavLinks}
+          isMobile={isMobile}
+          isLoading={isLoading}
+          userState={userState}
+          pricingRequireAuth={pricingRequireAuth}
+        />
+
+        <ActionButtons
+          isNewYear={isNewYear}
+          unreadCount={unreadCount}
+          onNoticeOpen={handleNoticeOpen}
+          theme={theme}
+          onThemeToggle={handleThemeToggle}
+          currentLang={currentLang}
+          onLanguageChange={handleLanguageChange}
+          userState={userState}
+          isLoading={isLoading}
+          isMobile={isMobile}
+          isSelfUseMode={isSelfUseMode}
+          logout={logout}
+          navigate={navigate}
+          t={t}
+        />
       </div>
     </header>
   );
