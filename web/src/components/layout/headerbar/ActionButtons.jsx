@@ -41,7 +41,7 @@ const ActionButtons = ({
   t,
 }) => {
   return (
-    <div className='flex items-center gap-2 md:gap-3'>
+    <div className='nebula-header-actions'>
       <NewYearButton isNewYear={isNewYear} />
 
       <NotificationButton

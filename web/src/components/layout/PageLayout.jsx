@@ -132,7 +132,7 @@ const PageLayout = () => {
       <Header
         style={{
           padding: 0,
-          height: 'auto',
+          height: 'var(--nebula-header-height)',
           lineHeight: 'normal',
           position: 'fixed',
           width: '100%',
@@ -150,18 +150,19 @@ const PageLayout = () => {
           overflow: isMobile ? 'visible' : 'auto',
           display: 'flex',
           flexDirection: 'column',
+          marginTop: 'var(--nebula-header-height)',
         }}
       >
-        {showSider && (
+        {showSider && !isMobile && (
           <Sider
             style={{
               position: 'fixed',
               left: 0,
-              top: '64px',
+              top: 'var(--nebula-header-height)',
               zIndex: 99,
               border: 'none',
               paddingRight: '0',
-              height: 'calc(100vh - 64px)',
+              height: 'calc(100vh - var(--nebula-header-height))',
               width: 'var(--sidebar-current-width)',
             }}
           >
@@ -171,6 +172,21 @@ const PageLayout = () => {
               }}
             />
           </Sider>
+        )}
+        {isMobile && drawerOpen && showSider && (
+          <>
+            <div
+              className='nebula-drawer-overlay'
+              onClick={() => setDrawerOpen(false)}
+            />
+            <div className='nebula-drawer nebula-drawer-open'>
+              <SiderBar
+                onNavigate={() => {
+                  setDrawerOpen(false);
+                }}
+              />
+            </div>
+          </>
         )}
         <Layout
           style={{
@@ -190,7 +206,6 @@ const PageLayout = () => {
               flex: '1 0 auto',
               overflowY: isMobile ? 'visible' : 'hidden',
               WebkitOverflowScrolling: 'touch',
-              padding: shouldInnerPadding ? (isMobile ? '5px' : '24px') : '0',
               position: 'relative',
             }}
           >

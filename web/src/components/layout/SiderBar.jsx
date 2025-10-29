@@ -28,7 +28,7 @@ import { useMinimumLoadingTime } from '../../hooks/common/useMinimumLoadingTime'
 import { isAdmin, isRoot, showError } from '../../helpers';
 import SkeletonWrapper from './components/SkeletonWrapper';
 
-import { Nav, Divider, Button } from '@douyinfe/semi-ui';
+import { Nav, Divider } from '@douyinfe/semi-ui';
 
 const routerMap = {
   home: '/',
@@ -363,7 +363,7 @@ const SiderBar = ({ onNavigate = () => {} }) => {
           </span>
         }
         icon={
-          <div className='sidebar-icon-container flex-shrink-0'>
+          <div className='nebula-sidebar-item-icon'>
             {getLucideIcon(item.itemKey, isSelected)}
           </div>
         }
@@ -391,7 +391,7 @@ const SiderBar = ({ onNavigate = () => {} }) => {
             </span>
           }
           icon={
-            <div className='sidebar-icon-container flex-shrink-0'>
+            <div className='nebula-sidebar-item-icon'>
               {getLucideIcon(item.itemKey, isSelected)}
             </div>
           }
@@ -424,10 +424,9 @@ const SiderBar = ({ onNavigate = () => {} }) => {
 
   return (
     <div
-      className='sidebar-container'
+      className='nebula-sidebar'
       style={{
         width: 'var(--sidebar-current-width)',
-        background: 'var(--semi-color-bg-0)',
       }}
     >
       <SkeletonWrapper
@@ -438,14 +437,14 @@ const SiderBar = ({ onNavigate = () => {} }) => {
         showAdmin={isAdmin()}
       >
         <Nav
-          className='sidebar-nav'
+          className='nebula-sidebar-content'
           defaultIsCollapsed={collapsed}
           isCollapsed={collapsed}
           onCollapseChange={toggleCollapsed}
           selectedKeys={selectedKeys}
-          itemStyle='sidebar-nav-item'
-          hoverStyle='sidebar-nav-item:hover'
-          selectedStyle='sidebar-nav-item-selected'
+          itemStyle='nebula-sidebar-item'
+          hoverStyle='nebula-sidebar-item-hover'
+          selectedStyle='nebula-sidebar-item-active'
           renderWrapper={({ itemElement, props }) => {
             const to =
               routerMapState[props.itemKey] || routerMap[props.itemKey];
@@ -483,11 +482,11 @@ const SiderBar = ({ onNavigate = () => {} }) => {
           {hasSectionVisibleModules('chat') && (
             <>
               {highlightItems.length > 0 && (
-                <Divider className='sidebar-divider' />
+                <Divider className='nebula-sidebar-divider' />
               )}
-              <div className='sidebar-section'>
+              <div className='nebula-sidebar-section'>
                 {!collapsed && (
-                  <div className='sidebar-group-label'>{t('聊天')}</div>
+                  <div className='nebula-sidebar-section-label'>{t('聊天')}</div>
                 )}
                 {chatMenuItems.map((item) => renderSubItem(item))}
               </div>
@@ -499,11 +498,11 @@ const SiderBar = ({ onNavigate = () => {} }) => {
             <>
               {(highlightItems.length > 0 ||
                 hasSectionVisibleModules('chat')) && (
-                <Divider className='sidebar-divider' />
+                <Divider className='nebula-sidebar-divider' />
               )}
-              <div>
+              <div className='nebula-sidebar-section'>
                 {!collapsed && (
-                  <div className='sidebar-group-label'>{t('控制台')}</div>
+                  <div className='nebula-sidebar-section-label'>{t('控制台')}</div>
                 )}
                 {workspaceItems.map((item) => renderNavItem(item))}
               </div>
@@ -513,10 +512,10 @@ const SiderBar = ({ onNavigate = () => {} }) => {
           {/* 个人中心区域 */}
           {hasSectionVisibleModules('personal') && (
             <>
-              <Divider className='sidebar-divider' />
-              <div>
+              <Divider className='nebula-sidebar-divider' />
+              <div className='nebula-sidebar-section'>
                 {!collapsed && (
-                  <div className='sidebar-group-label'>{t('个人中心')}</div>
+                  <div className='nebula-sidebar-section-label'>{t('个人中心')}</div>
                 )}
                 {financeItems.map((item) => renderNavItem(item))}
               </div>
@@ -526,10 +525,10 @@ const SiderBar = ({ onNavigate = () => {} }) => {
           {/* 管理员区域 - 只在管理员时显示且配置允许时显示 */}
           {isAdmin() && hasSectionVisibleModules('admin') && (
             <>
-              <Divider className='sidebar-divider' />
-              <div>
+              <Divider className='nebula-sidebar-divider' />
+              <div className='nebula-sidebar-section'>
                 {!collapsed && (
-                  <div className='sidebar-group-label'>{t('管理员')}</div>
+                  <div className='nebula-sidebar-section-label'>{t('管理员')}</div>
                 )}
                 {adminItems.map((item) => renderNavItem(item))}
               </div>
@@ -539,38 +538,26 @@ const SiderBar = ({ onNavigate = () => {} }) => {
       </SkeletonWrapper>
 
       {/* 底部折叠按钮 */}
-      <div className='sidebar-collapse-button'>
+      <div className='nebula-sidebar-footer'>
         <SkeletonWrapper
           loading={showSkeleton}
           type='button'
           width={collapsed ? 36 : 156}
-          height={24}
+          height={36}
           className='w-full'
         >
-          <Button
-            theme='outline'
-            type='tertiary'
-            size='small'
-            icon={
-              <ChevronLeft
-                size={16}
-                strokeWidth={2.5}
-                color='var(--semi-color-text-2)'
-                style={{
-                  transform: collapsed ? 'rotate(180deg)' : 'rotate(0deg)',
-                }}
-              />
-            }
+          <button
+            className={`nebula-sidebar-toggle-btn ${collapsed ? 'nebula-sidebar-collapsed' : ''}`}
             onClick={toggleCollapsed}
-            icononly={collapsed}
-            style={
-              collapsed
-                ? { width: 36, height: 24, padding: 0 }
-                : { padding: '4px 12px', width: '100%' }
-            }
+            aria-label={collapsed ? t('展开侧边栏') : t('收起侧边栏')}
           >
-            {!collapsed ? t('收起侧边栏') : null}
-          </Button>
+            <ChevronLeft
+              size={18}
+              strokeWidth={2.5}
+              className='nebula-sidebar-toggle-icon'
+            />
+            {!collapsed && <span>{t('收起侧边栏')}</span>}
+          </button>
         </SkeletonWrapper>
       </div>
     </div>
