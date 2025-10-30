@@ -1524,6 +1524,117 @@ html.dark .nebula-console-container .semi-card:hover {
   margin-top: var(--nebula-spacing-xs);
 }
 
+/* Enhanced Form Controls - Consistent styling across all inputs */
+:where(.nebula-form, .semi-form) .semi-input-wrapper,
+:where(.nebula-form, .semi-form) .semi-select,
+:where(.nebula-form, .semi-form) .semi-textarea-wrapper,
+:where(.nebula-form, .semi-form) .semi-input-textarea-wrapper {
+  border-radius: var(--nebula-radius-sm) !important;
+  border: 1px solid rgba(var(--semi-blue-0), 0.15);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(var(--semi-blue-0), 0.01);
+}
+
+html.dark :where(.nebula-form, .semi-form) .semi-input-wrapper,
+html.dark :where(.nebula-form, .semi-form) .semi-select,
+html.dark :where(.nebula-form, .semi-form) .semi-textarea-wrapper,
+html.dark :where(.nebula-form, .semi-form) .semi-input-textarea-wrapper {
+  border-color: rgba(var(--semi-blue-0), 0.2);
+  background: rgba(15, 23, 42, 0.3);
+}
+
+:where(.nebula-form, .semi-form) .semi-input-wrapper:hover,
+:where(.nebula-form, .semi-form) .semi-select:hover,
+:where(.nebula-form, .semi-form) .semi-textarea-wrapper:hover,
+:where(.nebula-form, .semi-form) .semi-input-textarea-wrapper:hover {
+  border-color: rgba(var(--semi-blue-0), 0.3);
+  background: rgba(var(--semi-blue-0), 0.02);
+}
+
+html.dark :where(.nebula-form, .semi-form) .semi-input-wrapper:hover,
+html.dark :where(.nebula-form, .semi-form) .semi-select:hover,
+html.dark :where(.nebula-form, .semi-form) .semi-textarea-wrapper:hover,
+html.dark :where(.nebula-form, .semi-form) .semi-input-textarea-wrapper:hover {
+  border-color: rgba(var(--semi-blue-0), 0.3);
+  background: rgba(15, 23, 42, 0.4);
+}
+
+:where(.nebula-form, .semi-form) .semi-input-wrapper:focus-within,
+:where(.nebula-form, .semi-form) .semi-select-focused,
+:where(.nebula-form, .semi-form) .semi-textarea-wrapper:focus-within,
+:where(.nebula-form, .semi-form) .semi-input-textarea-wrapper:focus-within {
+  border-color: var(--semi-color-primary);
+  background: var(--semi-color-bg-0);
+  box-shadow: 0 0 0 3px rgba(var(--semi-blue-0), 0.1);
+  outline: none;
+}
+
+html.dark :where(.nebula-form, .semi-form) .semi-input-wrapper:focus-within,
+html.dark :where(.nebula-form, .semi-form) .semi-select-focused,
+html.dark :where(.nebula-form, .semi-form) .semi-textarea-wrapper:focus-within,
+html.dark :where(.nebula-form, .semi-form) .semi-input-textarea-wrapper:focus-within {
+  box-shadow: 0 0 0 3px rgba(var(--semi-blue-0), 0.2);
+}
+
+/* Disabled State */
+:where(.nebula-form, .semi-form) .semi-input-wrapper-disabled,
+:where(.nebula-form, .semi-form) .semi-select-disabled,
+:where(.nebula-form, .semi-form) .semi-textarea-wrapper-disabled,
+:where(.nebula-form, .semi-form) .semi-input-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: rgba(var(--semi-grey-0), 0.04);
+}
+
+/* Validation States */
+:where(.nebula-form, .semi-form) .semi-input-wrapper-error,
+:where(.nebula-form, .semi-form) .semi-select-error,
+:where(.nebula-form, .semi-form) .semi-textarea-wrapper-error {
+  border-color: var(--semi-color-danger);
+  background: rgba(var(--semi-red-0), 0.02);
+}
+
+:where(.nebula-form, .semi-form) .semi-input-wrapper-error:focus-within,
+:where(.nebula-form, .semi-form) .semi-select-error.semi-select-focused,
+:where(.nebula-form, .semi-form) .semi-textarea-wrapper-error:focus-within {
+  box-shadow: 0 0 0 3px rgba(var(--semi-red-0), 0.1);
+}
+
+:where(.nebula-form, .semi-form) .semi-input-wrapper-warning,
+:where(.nebula-form, .semi-form) .semi-select-warning,
+:where(.nebula-form, .semi-form) .semi-textarea-wrapper-warning {
+  border-color: var(--semi-color-warning);
+  background: rgba(var(--semi-orange-0), 0.02);
+}
+
+:where(.nebula-form, .semi-form) .semi-input-wrapper-warning:focus-within,
+:where(.nebula-form, .semi-form) .semi-select-warning.semi-select-focused,
+:where(.nebula-form, .semi-form) .semi-textarea-wrapper-warning:focus-within {
+  box-shadow: 0 0 0 3px rgba(var(--semi-orange-0), 0.1);
+}
+
+:where(.nebula-form, .semi-form) .semi-form-field-error-message {
+  font-size: var(--nebula-text-xs);
+  color: var(--semi-color-danger);
+  margin-top: var(--nebula-spacing-xs);
+  display: flex;
+  align-items: center;
+  gap: var(--nebula-spacing-xs);
+}
+
+:where(.nebula-form, .semi-form) .semi-form-field-label {
+  font-weight: 500;
+  font-size: var(--nebula-text-sm);
+  color: var(--semi-color-text-0);
+  margin-bottom: var(--nebula-spacing-xs);
+}
+
+:where(.nebula-form, .semi-form) .semi-form-field-label-required::after {
+  content: '*';
+  color: var(--semi-color-danger);
+  margin-left: var(--nebula-spacing-xs);
+}
+
 /* ====== Badge & Tag Enhancements ====== */
 .nebula-badge {
   display: inline-flex;
@@ -1604,6 +1715,132 @@ html.dark .nebula-modal .semi-modal-footer {
   display: flex;
   gap: var(--nebula-spacing-sm);
   flex-wrap: wrap;
+}
+
+/* Enhanced Button Variants */
+.nebula-btn,
+.semi-button {
+  border-radius: var(--nebula-radius-sm) !important;
+  font-weight: 500;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: 0.01em;
+}
+
+.nebula-btn:hover:not(:disabled),
+.semi-button:hover:not(.semi-button-disabled) {
+  transform: translateY(-1px);
+}
+
+.nebula-btn:active:not(:disabled),
+.semi-button:active:not(.semi-button-disabled) {
+  transform: translateY(0);
+}
+
+/* Primary Button */
+.nebula-btn-primary,
+.semi-button-primary {
+  background: linear-gradient(135deg, var(--semi-color-primary) 0%, var(--semi-color-primary-active) 100%);
+  box-shadow: 0 2px 8px rgba(var(--semi-blue-0), 0.2);
+}
+
+.nebula-btn-primary:hover:not(:disabled),
+.semi-button-primary:hover:not(.semi-button-disabled) {
+  box-shadow: 0 4px 16px rgba(var(--semi-blue-0), 0.3);
+}
+
+/* Secondary Button */
+.nebula-btn-secondary,
+.semi-button-secondary {
+  border: 1px solid rgba(var(--semi-blue-0), 0.2);
+  background: rgba(var(--semi-blue-0), 0.05);
+}
+
+.nebula-btn-secondary:hover:not(:disabled),
+.semi-button-secondary:hover:not(.semi-button-disabled) {
+  background: rgba(var(--semi-blue-0), 0.1);
+  border-color: rgba(var(--semi-blue-0), 0.3);
+}
+
+/* Tertiary Button */
+.nebula-btn-tertiary,
+.semi-button-tertiary {
+  background: transparent;
+  color: var(--semi-color-text-0);
+}
+
+.nebula-btn-tertiary:hover:not(:disabled),
+.semi-button-tertiary:hover:not(.semi-button-disabled) {
+  background: rgba(var(--semi-blue-0), 0.08);
+}
+
+/* Danger Button */
+.nebula-btn-danger,
+.semi-button-danger {
+  background: linear-gradient(135deg, var(--semi-color-danger) 0%, var(--semi-color-danger-active) 100%);
+  box-shadow: 0 2px 8px rgba(var(--semi-red-0), 0.2);
+}
+
+.nebula-btn-danger:hover:not(:disabled),
+.semi-button-danger:hover:not(.semi-button-disabled) {
+  box-shadow: 0 4px 16px rgba(var(--semi-red-0), 0.3);
+}
+
+/* Success Button */
+.nebula-btn-success {
+  background: linear-gradient(135deg, var(--semi-color-success) 0%, var(--semi-color-success-active) 100%);
+  box-shadow: 0 2px 8px rgba(var(--semi-green-0), 0.2);
+}
+
+.nebula-btn-success:hover:not(:disabled) {
+  box-shadow: 0 4px 16px rgba(var(--semi-green-0), 0.3);
+}
+
+/* Disabled Button */
+.nebula-btn:disabled,
+.semi-button-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Button Sizes */
+.nebula-btn-sm {
+  padding: 6px 12px;
+  font-size: var(--nebula-text-xs);
+  height: 32px;
+}
+
+.nebula-btn-md {
+  padding: 10px 20px;
+  font-size: var(--nebula-text-sm);
+  height: 40px;
+}
+
+.nebula-btn-lg {
+  padding: 14px 28px;
+  font-size: var(--nebula-text-base);
+  height: 48px;
+}
+
+/* Icon Button */
+.nebula-btn-icon {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--nebula-radius-sm);
+}
+
+.nebula-btn-icon-sm {
+  width: 32px;
+  height: 32px;
+}
+
+.nebula-btn-icon-lg {
+  width: 48px;
+  height: 48px;
 }
 
 /* ====== Divider ====== */
@@ -1956,6 +2193,382 @@ html.dark .nebula-header-action-btn:hover {
   letter-spacing: 0.05em;
   color: var(--semi-color-text-2);
   opacity: 0.85;
+}
+
+/* ====== Drawer Enhancements ====== */
+.nebula-drawer .semi-drawer-content {
+  border-radius: var(--nebula-radius-lg) 0 0 var(--nebula-radius-lg);
+  box-shadow: var(--nebula-shadow-xl);
+  padding: var(--nebula-spacing-xl) var(--nebula-spacing-lg);
+}
+
+html.dark .nebula-drawer .semi-drawer-content {
+  box-shadow: var(--nebula-shadow-dark-xl);
+}
+
+.nebula-drawer .semi-drawer-header {
+  border-bottom: 1px solid rgba(var(--semi-blue-0), 0.08);
+  margin-bottom: var(--nebula-spacing-lg);
+  padding-bottom: var(--nebula-spacing-md);
+}
+
+.nebula-drawer .semi-drawer-body {
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+  padding-right: var(--nebula-spacing-sm);
+}
+
+/* ====== Toast Enhancements ====== */
+.nebula-toast .semi-toast-item {
+  border-radius: var(--nebula-radius-md);
+  box-shadow: var(--nebula-shadow-md);
+  border: 1px solid rgba(var(--semi-blue-0), 0.1);
+  padding: var(--nebula-spacing-md) var(--nebula-spacing-lg);
+  min-width: 320px;
+}
+
+html.dark .nebula-toast .semi-toast-item {
+  box-shadow: var(--nebula-shadow-dark-md);
+  border-color: rgba(var(--semi-blue-0), 0.18);
+}
+
+.nebula-toast .semi-toast-title {
+  font-weight: 600;
+  font-size: var(--nebula-text-sm);
+  color: var(--semi-color-text-0);
+}
+
+.nebula-toast .semi-toast-content {
+  font-size: var(--nebula-text-xs);
+  color: var(--semi-color-text-2);
+}
+
+.nebula-toast .semi-toast-close {
+  border-radius: var(--nebula-radius-sm);
+}
+
+/* Status-specific toasts */
+.nebula-toast-success .semi-toast-item {
+  border-color: rgba(var(--semi-green-0), 0.2);
+  box-shadow: 0 8px 20px rgba(var(--semi-green-0), 0.15);
+}
+
+.nebula-toast-error .semi-toast-item {
+  border-color: rgba(var(--semi-red-0), 0.2);
+  box-shadow: 0 8px 20px rgba(var(--semi-red-0), 0.15);
+}
+
+.nebula-toast-warning .semi-toast-item {
+  border-color: rgba(var(--semi-orange-0), 0.2);
+  box-shadow: 0 8px 20px rgba(var(--semi-orange-0), 0.15);
+}
+
+.nebula-toast-info .semi-toast-item {
+  border-color: rgba(var(--semi-blue-0), 0.2);
+  box-shadow: 0 8px 20px rgba(var(--semi-blue-0), 0.15);
+}
+
+/* ====== Icon System ====== */
+:root {
+  --nebula-icon-xs: 14px;
+  --nebula-icon-sm: 16px;
+  --nebula-icon-md: 20px;
+  --nebula-icon-lg: 24px;
+  --nebula-icon-xl: 32px;
+  --nebula-icon-stroke: 2px;
+  --nebula-icon-stroke-light: 1.5px;
+}
+
+.nebula-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.nebula-icon-xs {
+  width: var(--nebula-icon-xs);
+  height: var(--nebula-icon-xs);
+}
+
+.nebula-icon-sm {
+  width: var(--nebula-icon-sm);
+  height: var(--nebula-icon-sm);
+}
+
+.nebula-icon-md {
+  width: var(--nebula-icon-md);
+  height: var(--nebula-icon-md);
+}
+
+.nebula-icon-lg {
+  width: var(--nebula-icon-lg);
+  height: var(--nebula-icon-lg);
+}
+
+.nebula-icon-xl {
+  width: var(--nebula-icon-xl);
+  height: var(--nebula-icon-xl);
+}
+
+/* Icon colors */
+.nebula-icon-primary {
+  color: var(--semi-color-primary);
+}
+
+.nebula-icon-success {
+  color: var(--semi-color-success);
+}
+
+.nebula-icon-warning {
+  color: var(--semi-color-warning);
+}
+
+.nebula-icon-danger {
+  color: var(--semi-color-danger);
+}
+
+.nebula-icon-muted {
+  color: var(--semi-color-text-2);
+}
+
+/* Icon hover effects */
+.nebula-icon-clickable {
+  cursor: pointer;
+  border-radius: var(--nebula-radius-sm);
+  padding: var(--nebula-spacing-xs);
+  transition: all 0.2s ease;
+}
+
+.nebula-icon-clickable:hover {
+  background: rgba(var(--semi-blue-0), 0.08);
+  color: var(--semi-color-primary);
+  transform: scale(1.1);
+}
+
+/* Lucide icons - consistent stroke */
+.lucide {
+  stroke-width: var(--nebula-icon-stroke);
+}
+
+.lucide-light {
+  stroke-width: var(--nebula-icon-stroke-light);
+}
+
+/* ====== Enhanced Table Styling ====== */
+.nebula-table-wrapper {
+  border-radius: var(--nebula-radius-md);
+  overflow: hidden;
+  border: 1px solid rgba(var(--semi-blue-0), 0.08);
+}
+
+html.dark .nebula-table-wrapper {
+  border-color: rgba(var(--semi-blue-0), 0.15);
+}
+
+/* Table Header */
+.nebula-table .semi-table-thead > .semi-table-row,
+.nebula-console-surface .semi-table-thead > .semi-table-row,
+.semi-table-thead > .semi-table-row {
+  background: linear-gradient(
+    135deg,
+    rgba(var(--semi-blue-0), 0.05) 0%,
+    rgba(var(--semi-blue-0), 0.02) 100%
+  );
+  border-bottom: 2px solid rgba(var(--semi-blue-0), 0.1);
+}
+
+html.dark .nebula-table .semi-table-thead > .semi-table-row,
+html.dark .nebula-console-surface .semi-table-thead > .semi-table-row,
+html.dark .semi-table-thead > .semi-table-row {
+  background: linear-gradient(
+    135deg,
+    rgba(var(--semi-blue-0), 0.12) 0%,
+    rgba(var(--semi-blue-0), 0.08) 100%
+  );
+  border-bottom-color: rgba(var(--semi-blue-0), 0.2);
+}
+
+.nebula-table .semi-table-row-head,
+.nebula-console-surface .semi-table-row-head,
+.semi-table-row-head {
+  font-weight: 600;
+  font-size: var(--nebula-text-sm);
+  color: var(--semi-color-text-0);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  padding: var(--nebula-spacing-md);
+}
+
+/* Table Body - Zebra Rows */
+.nebula-table-zebra .semi-table-tbody > .semi-table-row:nth-child(even),
+.nebula-console-surface .semi-table-tbody > .semi-table-row:nth-child(even) {
+  background-color: rgba(var(--semi-blue-0), 0.015);
+}
+
+html.dark .nebula-table-zebra .semi-table-tbody > .semi-table-row:nth-child(even),
+html.dark .nebula-console-surface .semi-table-tbody > .semi-table-row:nth-child(even) {
+  background-color: rgba(var(--semi-blue-0), 0.03);
+}
+
+/* Table Row Hover */
+.nebula-table .semi-table-tbody > .semi-table-row:hover,
+.nebula-console-surface .semi-table-tbody > .semi-table-row:hover,
+.semi-table-tbody > .semi-table-row:hover {
+  background-color: rgba(var(--semi-blue-0), 0.04) !important;
+  cursor: pointer;
+}
+
+html.dark .nebula-table .semi-table-tbody > .semi-table-row:hover,
+html.dark .nebula-console-surface .semi-table-tbody > .semi-table-row:hover,
+html.dark .semi-table-tbody > .semi-table-row:hover {
+  background-color: rgba(var(--semi-blue-0), 0.08) !important;
+}
+
+/* Table Cell */
+.nebula-table .semi-table-row-cell,
+.nebula-console-surface .semi-table-row-cell,
+.semi-table-row-cell {
+  padding: var(--nebula-spacing-md);
+  font-size: var(--nebula-text-sm);
+  color: var(--semi-color-text-1);
+  border-bottom: 1px solid rgba(var(--semi-blue-0), 0.06);
+}
+
+html.dark .nebula-table .semi-table-row-cell,
+html.dark .nebula-console-surface .semi-table-row-cell,
+html.dark .semi-table-row-cell {
+  border-bottom-color: rgba(var(--semi-blue-0), 0.1);
+}
+
+/* Empty State */
+.nebula-table .semi-table-empty,
+.nebula-console-surface .semi-table-empty,
+.semi-table-empty {
+  padding: var(--nebula-spacing-2xl);
+  text-align: center;
+  color: var(--semi-color-text-2);
+}
+
+/* Loading State */
+.nebula-table .semi-table-loading,
+.nebula-console-surface .semi-table-loading {
+  padding: var(--nebula-spacing-2xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: var(--nebula-spacing-md);
+}
+
+/* Compact Table */
+.nebula-table-compact .semi-table-row-head,
+.nebula-table-compact .semi-table-row-cell {
+  padding: var(--nebula-spacing-sm) var(--nebula-spacing-md);
+  font-size: var(--nebula-text-xs);
+}
+
+/* ====== Pagination Enhancements ====== */
+.nebula-pagination .semi-page-item {
+  border-radius: var(--nebula-radius-sm);
+  transition: all 0.2s ease;
+  font-weight: 500;
+  border: 1px solid rgba(var(--semi-blue-0), 0.08);
+}
+
+.nebula-pagination .semi-page-item:hover:not(.semi-page-item-disabled):not(.semi-page-item-active) {
+  background: rgba(var(--semi-blue-0), 0.08);
+  border-color: rgba(var(--semi-blue-0), 0.15);
+}
+
+.nebula-pagination .semi-page-item-active {
+  background: linear-gradient(135deg, var(--semi-color-primary) 0%, var(--semi-color-primary-active) 100%);
+  border-color: transparent;
+  box-shadow: 0 2px 8px rgba(var(--semi-blue-0), 0.2);
+}
+
+.nebula-pagination .semi-page-item-disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ====== Checkbox & Radio Enhancements ====== */
+.nebula-form .semi-checkbox,
+.semi-checkbox {
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.nebula-form .semi-checkbox-inner,
+.semi-checkbox-inner {
+  border-radius: 6px;
+  border: 1px solid rgba(var(--semi-blue-0), 0.2);
+  transition: all 0.2s ease;
+}
+
+.nebula-form .semi-checkbox:hover .semi-checkbox-inner,
+.semi-checkbox:hover .semi-checkbox-inner {
+  border-color: var(--semi-color-primary);
+}
+
+.nebula-form .semi-checkbox-checked .semi-checkbox-inner,
+.semi-checkbox-checked .semi-checkbox-inner {
+  background: linear-gradient(135deg, var(--semi-color-primary) 0%, var(--semi-color-primary-active) 100%);
+  border-color: transparent;
+}
+
+.nebula-form .semi-radio,
+.semi-radio {
+  transition: all 0.2s ease;
+}
+
+.nebula-form .semi-radio-inner,
+.semi-radio-inner {
+  border: 1px solid rgba(var(--semi-blue-0), 0.2);
+  transition: all 0.2s ease;
+}
+
+.nebula-form .semi-radio:hover .semi-radio-inner,
+.semi-radio:hover .semi-radio-inner {
+  border-color: var(--semi-color-primary);
+}
+
+.nebula-form .semi-radio-checked .semi-radio-inner,
+.semi-radio-checked .semi-radio-inner {
+  border-color: var(--semi-color-primary);
+}
+
+/* ====== Select Dropdown Enhancements ====== */
+.nebula-form .semi-select-option,
+.semi-select-option {
+  border-radius: var(--nebula-radius-sm);
+  margin: 2px 4px;
+  padding: 8px 12px;
+  transition: all 0.2s ease;
+}
+
+.nebula-form .semi-select-option:hover,
+.semi-select-option:hover {
+  background: rgba(var(--semi-blue-0), 0.08);
+}
+
+.nebula-form .semi-select-option-selected,
+.semi-select-option-selected {
+  background: linear-gradient(135deg, rgba(var(--semi-blue-0), 0.12) 0%, rgba(var(--semi-blue-0), 0.08) 100%);
+  color: var(--semi-color-primary);
+  font-weight: 500;
+}
+
+/* ====== Switch Enhancements ====== */
+.nebula-form .semi-switch,
+.semi-switch {
+  transition: all 0.3s ease;
+}
+
+.nebula-form .semi-switch-checked,
+.semi-switch-checked {
+  background: linear-gradient(135deg, var(--semi-color-primary) 0%, var(--semi-color-primary-active) 100%);
 }
 
 .nebula-sidebar-item {
