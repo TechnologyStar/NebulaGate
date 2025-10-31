@@ -22,6 +22,7 @@ export default {
   darkMode: 'class',
   theme: {
     colors: {
+      /* ====== Semi UI Color Mappings (Preserved for Component Compatibility) ====== */
       'semi-color-white': 'var(--semi-color-white)',
       'semi-color-black': 'var(--semi-color-black)',
       'semi-color-primary': 'var(--semi-color-primary)',
@@ -133,8 +134,133 @@ export default {
       'semi-color-data-17': 'var(--semi-color-data-17)',
       'semi-color-data-18': 'var(--semi-color-data-18)',
       'semi-color-data-19': 'var(--semi-color-data-19)',
+
+      /* ====== NebulaGate Design Token Mappings ====== */
+      
+      /* Brand Colors */
+      'nebula-brand-primary': 'var(--nebula-brand-primary)',
+      'nebula-brand-primary-hover': 'var(--nebula-brand-primary-hover)',
+      'nebula-brand-primary-active': 'var(--nebula-brand-primary-active)',
+      'nebula-brand-secondary': 'var(--nebula-brand-secondary)',
+      
+      /* Aurora Accents */
+      'nebula-aurora-teal': 'var(--nebula-aurora-teal)',
+      'nebula-aurora-purple': 'var(--nebula-aurora-purple)',
+      'nebula-aurora-cyan': 'var(--nebula-aurora-cyan)',
+      'nebula-aurora-emerald': 'var(--nebula-aurora-emerald)',
+      
+      /* Gray Scale */
+      'nebula-gray': {
+        50: 'var(--nebula-gray-50)',
+        100: 'var(--nebula-gray-100)',
+        200: 'var(--nebula-gray-200)',
+        300: 'var(--nebula-gray-300)',
+        400: 'var(--nebula-gray-400)',
+        500: 'var(--nebula-gray-500)',
+        600: 'var(--nebula-gray-600)',
+        700: 'var(--nebula-gray-700)',
+        800: 'var(--nebula-gray-800)',
+        900: 'var(--nebula-gray-900)',
+      },
+      
+      /* Semantic Background Colors */
+      'nebula-bg-base': 'var(--nebula-bg-base)',
+      'nebula-bg-surface': 'var(--nebula-bg-surface)',
+      'nebula-bg-elevated': 'var(--nebula-bg-elevated)',
+      'nebula-bg-subtle': 'var(--nebula-bg-subtle)',
+      
+      /* Surface Colors */
+      'nebula-surface-primary': 'var(--nebula-surface-primary)',
+      'nebula-surface-secondary': 'var(--nebula-surface-secondary)',
+      'nebula-surface-tertiary': 'var(--nebula-surface-tertiary)',
+      
+      /* Border Colors */
+      'nebula-border-subtle': 'var(--nebula-border-subtle)',
+      'nebula-border-default': 'var(--nebula-border-default)',
+      'nebula-border-strong': 'var(--nebula-border-strong)',
+      'nebula-border-accent': 'var(--nebula-border-accent)',
+      'nebula-border-focus': 'var(--nebula-border-focus)',
+      
+      /* Text Colors */
+      'nebula-text-primary': 'var(--nebula-text-primary)',
+      'nebula-text-secondary': 'var(--nebula-text-secondary)',
+      'nebula-text-tertiary': 'var(--nebula-text-tertiary)',
+      'nebula-text-quaternary': 'var(--nebula-text-quaternary)',
+      'nebula-text-disabled': 'var(--nebula-text-disabled)',
+      'nebula-text-inverse': 'var(--nebula-text-inverse)',
+      'nebula-text-brand': 'var(--nebula-text-brand)',
+      'nebula-text-link': 'var(--nebula-text-link)',
+      
+      /* Status Colors */
+      'nebula-success': {
+        50: 'var(--nebula-success-50)',
+        100: 'var(--nebula-success-100)',
+        500: 'var(--nebula-success-500)',
+        600: 'var(--nebula-success-600)',
+        700: 'var(--nebula-success-700)',
+        text: 'var(--nebula-success-text)',
+        bg: 'var(--nebula-success-bg)',
+        border: 'var(--nebula-success-border)',
+      },
+      'nebula-warning': {
+        50: 'var(--nebula-warning-50)',
+        100: 'var(--nebula-warning-100)',
+        500: 'var(--nebula-warning-500)',
+        600: 'var(--nebula-warning-600)',
+        700: 'var(--nebula-warning-700)',
+        text: 'var(--nebula-warning-text)',
+        bg: 'var(--nebula-warning-bg)',
+        border: 'var(--nebula-warning-border)',
+      },
+      'nebula-error': {
+        50: 'var(--nebula-error-50)',
+        100: 'var(--nebula-error-100)',
+        500: 'var(--nebula-error-500)',
+        600: 'var(--nebula-error-600)',
+        700: 'var(--nebula-error-700)',
+        text: 'var(--nebula-error-text)',
+        bg: 'var(--nebula-error-bg)',
+        border: 'var(--nebula-error-border)',
+      },
+      'nebula-info': {
+        50: 'var(--nebula-info-50)',
+        100: 'var(--nebula-info-100)',
+        500: 'var(--nebula-info-500)',
+        600: 'var(--nebula-info-600)',
+        700: 'var(--nebula-info-700)',
+        text: 'var(--nebula-info-text)',
+        bg: 'var(--nebula-info-bg)',
+        border: 'var(--nebula-info-border)',
+      },
+      
+      /* Interactive States */
+      'nebula-interactive-default': 'var(--nebula-interactive-default)',
+      'nebula-interactive-hover': 'var(--nebula-interactive-hover)',
+      'nebula-interactive-active': 'var(--nebula-interactive-active)',
+      'nebula-interactive-disabled': 'var(--nebula-interactive-disabled)',
     },
     extend: {
+      /* ====== Font Family ====== */
+      fontFamily: {
+        sans: [
+          'Inter Variable',
+          'Inter',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          'Segoe UI',
+          'Helvetica Neue',
+          'Arial',
+          'Noto Sans',
+          'sans-serif',
+          'Microsoft YaHei',
+          'Apple Color Emoji',
+          'Segoe UI Emoji',
+          'Segoe UI Symbol',
+          'Noto Color Emoji',
+        ],
+      },
+      
+      /* ====== Border Radius ====== */
       borderRadius: {
         'semi-border-radius-extra-small':
           'var(--semi-border-radius-extra-small)',
@@ -148,6 +274,8 @@ export default {
         'nebula-radius-lg': 'var(--nebula-radius-lg)',
         'nebula-radius-xl': 'var(--nebula-radius-xl)',
       },
+      
+      /* ====== Spacing ====== */
       spacing: {
         'nebula-xs': 'var(--nebula-spacing-xs)',
         'nebula-sm': 'var(--nebula-spacing-sm)',
@@ -156,6 +284,8 @@ export default {
         'nebula-xl': 'var(--nebula-spacing-xl)',
         'nebula-2xl': 'var(--nebula-spacing-2xl)',
       },
+      
+      /* ====== Typography ====== */
       fontSize: {
         'nebula-xs': 'var(--nebula-text-xs)',
         'nebula-sm': 'var(--nebula-text-sm)',
@@ -165,6 +295,8 @@ export default {
         'nebula-2xl': 'var(--nebula-text-2xl)',
         'nebula-3xl': 'var(--nebula-text-3xl)',
       },
+      
+      /* ====== Shadows/Elevation ====== */
       boxShadow: {
         'nebula-sm': 'var(--nebula-shadow-sm)',
         'nebula-md': 'var(--nebula-shadow-md)',

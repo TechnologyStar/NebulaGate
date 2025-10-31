@@ -1,3 +1,6 @@
+/* ==================== Typography Imports ==================== */
+@import '@fontsource-variable/inter/standard.css';
+
 /* ==================== Tailwind CSS 配置 ==================== */
 @layer tailwind-base, semi, tailwind-components, tailwind-utils;
 
@@ -13,11 +16,291 @@
   @tailwind utilities;
 }
 
-/* ==================== 全局基础样式 ==================== */
+/* ==================== NebulaGate Design Tokens ==================== */
+/* 
+ * NebulaGate Design System - Nordic-Inspired Aesthetic
+ * A premium design language combining muted blues, cool grays, 
+ * earthen neutrals, and aurora-inspired accent hues.
+ */
+
 :root {
+  /* ====== Nordic Color Palette - Light Mode ====== */
+  
+  /* Primary Brand Colors - Muted Nordic Blues */
+  --nebula-brand-primary: #5B7C99;
+  --nebula-brand-primary-hover: #4A6A85;
+  --nebula-brand-primary-active: #3B5770;
+  --nebula-brand-secondary: #2563eb;
+  --nebula-brand-secondary-hover: #1d4ed8;
+  
+  /* Aurora Accent Colors - Northern Lights Inspired */
+  --nebula-aurora-teal: #14B8A6;
+  --nebula-aurora-teal-hover: #0D9488;
+  --nebula-aurora-purple: #8B5CF6;
+  --nebula-aurora-purple-hover: #7C3AED;
+  --nebula-aurora-cyan: #06B6D4;
+  --nebula-aurora-emerald: #10B981;
+  
+  /* Cool Gray Scale - Scandinavian Minimalism */
+  --nebula-gray-50: #F8FAFC;
+  --nebula-gray-100: #F1F5F9;
+  --nebula-gray-200: #E2E8F0;
+  --nebula-gray-300: #CBD5E1;
+  --nebula-gray-400: #94A3B8;
+  --nebula-gray-500: #64748B;
+  --nebula-gray-600: #475569;
+  --nebula-gray-700: #334155;
+  --nebula-gray-800: #1E293B;
+  --nebula-gray-900: #0F172A;
+  
+  /* Earthen Neutrals - Warm Undertones */
+  --nebula-neutral-50: #FAFBFC;
+  --nebula-neutral-100: #F4F6F8;
+  --nebula-neutral-200: #E8ECF0;
+  --nebula-neutral-300: #D1D9E2;
+  --nebula-neutral-400: #A5B4C4;
+  
+  /* ====== Semantic Tokens - Light Mode ====== */
+  
+  /* Background Hierarchy */
+  --nebula-bg-base: #FAFBFC;
+  --nebula-bg-surface: #FFFFFF;
+  --nebula-bg-elevated: #FFFFFF;
+  --nebula-bg-overlay: rgba(15, 23, 42, 0.05);
+  --nebula-bg-subtle: #F8FAFC;
+  
+  /* Surface Colors */
+  --nebula-surface-primary: #FFFFFF;
+  --nebula-surface-secondary: #F8FAFC;
+  --nebula-surface-tertiary: #F1F5F9;
+  --nebula-surface-hover: rgba(91, 124, 153, 0.04);
+  --nebula-surface-active: rgba(91, 124, 153, 0.08);
+  
+  /* Border Colors */
+  --nebula-border-subtle: rgba(15, 23, 42, 0.06);
+  --nebula-border-default: rgba(15, 23, 42, 0.12);
+  --nebula-border-strong: rgba(15, 23, 42, 0.20);
+  --nebula-border-accent: rgba(91, 124, 153, 0.25);
+  --nebula-border-focus: #5B7C99;
+  
+  /* Text Hierarchy */
+  --nebula-text-primary: #0F172A;
+  --nebula-text-secondary: #475569;
+  --nebula-text-tertiary: #64748B;
+  --nebula-text-quaternary: #94A3B8;
+  --nebula-text-disabled: #CBD5E1;
+  --nebula-text-inverse: #FFFFFF;
+  --nebula-text-brand: #5B7C99;
+  --nebula-text-link: #2563eb;
+  --nebula-text-link-hover: #1d4ed8;
+  
+  /* Status Colors - Success */
+  --nebula-success-50: #ECFDF5;
+  --nebula-success-100: #D1FAE5;
+  --nebula-success-500: #10B981;
+  --nebula-success-600: #059669;
+  --nebula-success-700: #047857;
+  --nebula-success-text: #047857;
+  --nebula-success-bg: #ECFDF5;
+  --nebula-success-border: #86EFAC;
+  
+  /* Status Colors - Warning */
+  --nebula-warning-50: #FEF3C7;
+  --nebula-warning-100: #FDE68A;
+  --nebula-warning-500: #F59E0B;
+  --nebula-warning-600: #D97706;
+  --nebula-warning-700: #B45309;
+  --nebula-warning-text: #B45309;
+  --nebula-warning-bg: #FEF3C7;
+  --nebula-warning-border: #FCD34D;
+  
+  /* Status Colors - Error/Danger */
+  --nebula-error-50: #FEF2F2;
+  --nebula-error-100: #FEE2E2;
+  --nebula-error-500: #EF4444;
+  --nebula-error-600: #DC2626;
+  --nebula-error-700: #B91C1C;
+  --nebula-error-text: #B91C1C;
+  --nebula-error-bg: #FEF2F2;
+  --nebula-error-border: #FCA5A5;
+  
+  /* Status Colors - Info */
+  --nebula-info-50: #EFF6FF;
+  --nebula-info-100: #DBEAFE;
+  --nebula-info-500: #3B82F6;
+  --nebula-info-600: #2563EB;
+  --nebula-info-700: #1D4ED8;
+  --nebula-info-text: #1D4ED8;
+  --nebula-info-bg: #EFF6FF;
+  --nebula-info-border: #93C5FD;
+  
+  /* Interactive States */
+  --nebula-interactive-default: #5B7C99;
+  --nebula-interactive-hover: #4A6A85;
+  --nebula-interactive-active: #3B5770;
+  --nebula-interactive-disabled: #E2E8F0;
+  --nebula-interactive-focus-ring: rgba(91, 124, 153, 0.2);
+  
+  /* ====== Spacing Grid ====== */
+  --nebula-spacing-xs: 4px;
+  --nebula-spacing-sm: 8px;
+  --nebula-spacing-md: 16px;
+  --nebula-spacing-lg: 24px;
+  --nebula-spacing-xl: 32px;
+  --nebula-spacing-2xl: 48px;
+  --nebula-spacing-3xl: 64px;
+  
+  /* ====== Border Radius Scale ====== */
+  --nebula-radius-sm: 12px;
+  --nebula-radius-md: 16px;
+  --nebula-radius-lg: 20px;
+  --nebula-radius-xl: 24px;
+  
+  /* ====== Typography Scale ====== */
+  --nebula-text-xs: 12px;
+  --nebula-text-sm: 14px;
+  --nebula-text-base: 16px;
+  --nebula-text-lg: 18px;
+  --nebula-text-xl: 20px;
+  --nebula-text-2xl: 24px;
+  --nebula-text-3xl: 30px;
+  
+  /* ====== Font Families ====== */
+  --nebula-font-sans: 'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont,
+    'Segoe UI', 'Helvetica Neue', Arial, 'Noto Sans', 'Microsoft YaHei',
+    'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', sans-serif;
+  --nebula-font-mono: 'JetBrains Mono', 'Fira Code', 'SFMono-Regular', Menlo,
+    Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  
+  /* ====== Elevation/Shadow Scale ====== */
+  --nebula-shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.06);
+  --nebula-shadow-md: 0 8px 24px rgba(15, 23, 42, 0.08);
+  --nebula-shadow-lg: 0 16px 40px rgba(15, 23, 42, 0.12);
+  --nebula-shadow-xl: 0 24px 60px rgba(15, 23, 42, 0.16);
+  
+  /* Dark mode shadows */
+  --nebula-shadow-dark-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --nebula-shadow-dark-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --nebula-shadow-dark-lg: 0 16px 40px rgba(0, 0, 0, 0.5);
+  --nebula-shadow-dark-xl: 0 24px 60px rgba(0, 0, 0, 0.6);
+  
+  /* Numeric color references for rgba() usage */
+  --semi-blue-0: 91, 124, 153;
+  --semi-green-0: 16, 185, 129;
+  --semi-red-0: 239, 68, 68;
+  --semi-orange-0: 245, 158, 11;
+  --semi-grey-0: 15, 23, 42;
+  --semi-grey-1: 30, 41, 59;
+  --semi-grey-2: 148, 163, 184;
+  
+  /* Sidebar Layout */
   --sidebar-width: 180px;
   --sidebar-width-collapsed: 60px;
   --sidebar-current-width: var(--sidebar-width);
+}
+
+/* ====== Dark Mode Tokens ====== */
+html.dark,
+[theme-mode='dark'] {
+  /* Primary Brand Colors - Lighter for Dark Mode */
+  --nebula-brand-primary: #7B9FBD;
+  --nebula-brand-primary-hover: #91B3D1;
+  --nebula-brand-primary-active: #A8C7E3;
+  --nebula-brand-secondary: #60a5fa;
+  --nebula-brand-secondary-hover: #93c5fd;
+  
+  /* Aurora Accent Colors - Enhanced for Dark */
+  --nebula-aurora-teal: #5EEAD4;
+  --nebula-aurora-teal-hover: #99F6E4;
+  --nebula-aurora-purple: #A78BFA;
+  --nebula-aurora-purple-hover: #C4B5FD;
+  --nebula-aurora-cyan: #67E8F9;
+  --nebula-aurora-emerald: #6EE7B7;
+  
+  /* Background Hierarchy - Deep Slate */
+  --nebula-bg-base: #0F172A;
+  --nebula-bg-surface: #1E293B;
+  --nebula-bg-elevated: #334155;
+  --nebula-bg-overlay: rgba(255, 255, 255, 0.05);
+  --nebula-bg-subtle: #1E293B;
+  
+  /* Surface Colors */
+  --nebula-surface-primary: #1E293B;
+  --nebula-surface-secondary: #334155;
+  --nebula-surface-tertiary: #475569;
+  --nebula-surface-hover: rgba(123, 159, 189, 0.08);
+  --nebula-surface-active: rgba(123, 159, 189, 0.15);
+  
+  /* Border Colors */
+  --nebula-border-subtle: rgba(148, 163, 184, 0.08);
+  --nebula-border-default: rgba(148, 163, 184, 0.15);
+  --nebula-border-strong: rgba(148, 163, 184, 0.25);
+  --nebula-border-accent: rgba(123, 159, 189, 0.35);
+  --nebula-border-focus: #7B9FBD;
+  
+  /* Text Hierarchy */
+  --nebula-text-primary: #F8FAFC;
+  --nebula-text-secondary: #CBD5E1;
+  --nebula-text-tertiary: #94A3B8;
+  --nebula-text-quaternary: #64748B;
+  --nebula-text-disabled: #475569;
+  --nebula-text-inverse: #0F172A;
+  --nebula-text-brand: #7B9FBD;
+  --nebula-text-link: #60a5fa;
+  --nebula-text-link-hover: #93c5fd;
+  
+  /* Status Colors - Adjusted for Dark Backgrounds */
+  --nebula-success-50: rgba(16, 185, 129, 0.1);
+  --nebula-success-100: rgba(16, 185, 129, 0.15);
+  --nebula-success-500: #34D399;
+  --nebula-success-600: #10B981;
+  --nebula-success-700: #059669;
+  --nebula-success-text: #6EE7B7;
+  --nebula-success-bg: rgba(16, 185, 129, 0.1);
+  --nebula-success-border: #059669;
+  
+  --nebula-warning-50: rgba(245, 158, 11, 0.1);
+  --nebula-warning-100: rgba(245, 158, 11, 0.15);
+  --nebula-warning-500: #FBBF24;
+  --nebula-warning-600: #F59E0B;
+  --nebula-warning-700: #D97706;
+  --nebula-warning-text: #FCD34D;
+  --nebula-warning-bg: rgba(245, 158, 11, 0.1);
+  --nebula-warning-border: #D97706;
+  
+  --nebula-error-50: rgba(239, 68, 68, 0.1);
+  --nebula-error-100: rgba(239, 68, 68, 0.15);
+  --nebula-error-500: #F87171;
+  --nebula-error-600: #EF4444;
+  --nebula-error-700: #DC2626;
+  --nebula-error-text: #FCA5A5;
+  --nebula-error-bg: rgba(239, 68, 68, 0.1);
+  --nebula-error-border: #DC2626;
+  
+  --nebula-info-50: rgba(59, 130, 246, 0.1);
+  --nebula-info-100: rgba(59, 130, 246, 0.15);
+  --nebula-info-500: #60A5FA;
+  --nebula-info-600: #3B82F6;
+  --nebula-info-700: #2563EB;
+  --nebula-info-text: #93C5FD;
+  --nebula-info-bg: rgba(59, 130, 246, 0.1);
+  --nebula-info-border: #2563EB;
+  
+  /* Interactive States */
+  --nebula-interactive-default: #7B9FBD;
+  --nebula-interactive-hover: #91B3D1;
+  --nebula-interactive-active: #A8C7E3;
+  --nebula-interactive-disabled: #334155;
+  --nebula-interactive-focus-ring: rgba(123, 159, 189, 0.3);
+  
+  /* Numeric color references for rgba() usage (dark mode) */
+  --semi-blue-0: 123, 159, 189;
+  --semi-green-0: 52, 211, 153;
+  --semi-red-0: 248, 113, 113;
+  --semi-orange-0: 251, 191, 36;
+  --semi-grey-0: 148, 163, 184;
+  --semi-grey-1: 51, 65, 85;
+  --semi-grey-2: 203, 213, 225;
 }
 
 body.sidebar-collapsed {
@@ -25,15 +308,16 @@ body.sidebar-collapsed {
 }
 
 body {
-  font-family: Lato, 'Helvetica Neue', Arial, Helvetica, 'Microsoft YaHei',
-    sans-serif;
-  color: var(--semi-color-text-0);
-  background-color: var(--semi-color-bg-0);
+  font-family: var(--nebula-font-sans);
+  color: var(--nebula-text-primary);
+  background-color: var(--nebula-bg-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: var(--nebula-font-mono);
 }
 
 /* ==================== 布局相关样式 ==================== */
@@ -896,43 +1180,6 @@ html.dark .with-pastel-balls::before {
 }
 
 /* ==================== NebulaGate Design System ==================== */
-
-/* ====== Spacing Grid ====== */
-:root {
-  --nebula-spacing-xs: 4px;
-  --nebula-spacing-sm: 8px;
-  --nebula-spacing-md: 16px;
-  --nebula-spacing-lg: 24px;
-  --nebula-spacing-xl: 32px;
-  --nebula-spacing-2xl: 48px;
-  
-  /* Card & Container Radius */
-  --nebula-radius-sm: 12px;
-  --nebula-radius-md: 16px;
-  --nebula-radius-lg: 20px;
-  --nebula-radius-xl: 24px;
-  
-  /* Typography Scale */
-  --nebula-text-xs: 12px;
-  --nebula-text-sm: 14px;
-  --nebula-text-base: 16px;
-  --nebula-text-lg: 18px;
-  --nebula-text-xl: 20px;
-  --nebula-text-2xl: 24px;
-  --nebula-text-3xl: 30px;
-  
-  /* Card Elevations */
-  --nebula-shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.06);
-  --nebula-shadow-md: 0 8px 24px rgba(15, 23, 42, 0.08);
-  --nebula-shadow-lg: 0 16px 40px rgba(15, 23, 42, 0.12);
-  --nebula-shadow-xl: 0 24px 60px rgba(15, 23, 42, 0.16);
-  
-  /* Dark mode shadows */
-  --nebula-shadow-dark-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-  --nebula-shadow-dark-md: 0 8px 24px rgba(0, 0, 0, 0.4);
-  --nebula-shadow-dark-lg: 0 16px 40px rgba(0, 0, 0, 0.5);
-  --nebula-shadow-dark-xl: 0 24px 60px rgba(0, 0, 0, 0.6);
-}
 
 /* ====== User Console Cards ====== */
 .nebula-card {
@@ -2902,4 +3149,268 @@ html.dark .nebula-footer {
     width: 36px;
     height: 36px;
   }
+}
+
+/* ==================== Semi UI Component Token Overrides ==================== */
+/* 
+ * Override Semi UI's CSS variables to integrate NebulaGate design tokens
+ * This ensures Semi UI components inherit the Nordic aesthetic
+ */
+
+:root {
+  /* Map Semi UI primary color to NebulaGate brand primary */
+  --semi-color-white: #ffffff;
+  --semi-color-black: #020617;
+  --semi-color-primary: var(--nebula-brand-primary);
+  --semi-color-primary-hover: var(--nebula-brand-primary-hover);
+  --semi-color-primary-active: var(--nebula-brand-primary-active);
+  --semi-color-primary-disabled: rgba(91, 124, 153, 0.35);
+  --semi-color-primary-light-default: rgba(91, 124, 153, 0.12);
+  --semi-color-primary-light-hover: rgba(91, 124, 153, 0.18);
+  --semi-color-primary-light-active: rgba(91, 124, 153, 0.25);
+  
+  /* Background layers */
+  --semi-color-bg-0: var(--nebula-bg-base);
+  --semi-color-bg-1: var(--nebula-bg-surface);
+  --semi-color-bg-2: var(--nebula-bg-elevated);
+  --semi-color-bg-3: var(--nebula-surface-secondary);
+  --semi-color-bg-4: var(--nebula-surface-tertiary);
+  
+  /* Text hierarchy */
+  --semi-color-text-0: var(--nebula-text-primary);
+  --semi-color-text-1: var(--nebula-text-secondary);
+  --semi-color-text-2: var(--nebula-text-tertiary);
+  --semi-color-text-3: var(--nebula-text-quaternary);
+  
+  /* Borders */
+  --semi-color-border: var(--nebula-border-default);
+  
+  /* Fills */
+  --semi-color-fill-0: var(--nebula-surface-primary);
+  --semi-color-fill-1: var(--nebula-surface-secondary);
+  --semi-color-fill-2: var(--nebula-surface-tertiary);
+  
+  /* Link colors */
+  --semi-color-link: var(--nebula-text-link);
+  --semi-color-link-hover: var(--nebula-text-link-hover);
+  --semi-color-link-active: var(--nebula-text-link-hover);
+  --semi-color-link-visited: #4338ca;
+  
+  /* Secondary and tertiary theme colors map to aurora accents */
+  --semi-color-secondary: var(--nebula-aurora-teal);
+  --semi-color-secondary-hover: var(--nebula-aurora-teal-hover);
+  --semi-color-secondary-active: var(--nebula-aurora-teal-hover);
+  --semi-color-secondary-disabled: rgba(20, 184, 166, 0.32);
+  --semi-color-secondary-light-default: rgba(20, 184, 166, 0.12);
+  --semi-color-secondary-light-hover: rgba(20, 184, 166, 0.18);
+  --semi-color-secondary-light-active: rgba(20, 184, 166, 0.24);
+  
+  --semi-color-tertiary: var(--nebula-aurora-purple);
+  --semi-color-tertiary-hover: var(--nebula-aurora-purple-hover);
+  --semi-color-tertiary-active: var(--nebula-aurora-purple-hover);
+  --semi-color-tertiary-light-default: rgba(139, 92, 246, 0.12);
+  --semi-color-tertiary-light-hover: rgba(139, 92, 246, 0.18);
+  --semi-color-tertiary-light-active: rgba(139, 92, 246, 0.24);
+  
+  /* Default neutrals */
+  --semi-color-default: var(--nebula-gray-500);
+  --semi-color-default-hover: var(--nebula-gray-600);
+  --semi-color-default-active: var(--nebula-gray-700);
+  
+  /* Status colors - Success */
+  --semi-color-success: var(--nebula-success-600);
+  --semi-color-success-hover: var(--nebula-success-700);
+  --semi-color-success-active: var(--nebula-success-700);
+  --semi-color-success-disabled: rgba(16, 185, 129, 0.35);
+  --semi-color-success-light-default: var(--nebula-success-bg);
+  --semi-color-success-light-hover: rgba(16, 185, 129, 0.16);
+  --semi-color-success-light-active: rgba(16, 185, 129, 0.24);
+  
+  /* Status colors - Warning */
+  --semi-color-warning: var(--nebula-warning-600);
+  --semi-color-warning-hover: var(--nebula-warning-700);
+  --semi-color-warning-active: var(--nebula-warning-700);
+  --semi-color-warning-light-default: var(--nebula-warning-bg);
+  --semi-color-warning-light-hover: rgba(245, 158, 11, 0.18);
+  --semi-color-warning-light-active: rgba(245, 158, 11, 0.26);
+  
+  /* Status colors - Danger/Error */
+  --semi-color-danger: var(--nebula-error-600);
+  --semi-color-danger-hover: var(--nebula-error-700);
+  --semi-color-danger-active: var(--nebula-error-700);
+  --semi-color-danger-light-default: var(--nebula-error-bg);
+  --semi-color-danger-light-hover: rgba(239, 68, 68, 0.16);
+  --semi-color-danger-light-active: rgba(239, 68, 68, 0.24);
+  
+  /* Status colors - Info */
+  --semi-color-info: var(--nebula-info-600);
+  --semi-color-info-hover: var(--nebula-info-700);
+  --semi-color-info-active: var(--nebula-info-700);
+  --semi-color-info-disabled: rgba(59, 130, 246, 0.35);
+  --semi-color-info-light-default: var(--nebula-info-bg);
+  --semi-color-info-light-hover: rgba(59, 130, 246, 0.16);
+  --semi-color-info-light-active: rgba(59, 130, 246, 0.24);
+  
+  /* Disabled states */
+  --semi-color-disabled-text: var(--nebula-text-disabled);
+  --semi-color-disabled-border: var(--nebula-border-subtle);
+  --semi-color-disabled-bg: var(--nebula-interactive-disabled);
+  --semi-color-disabled-fill: rgba(226, 232, 240, 0.65);
+  
+  /* Focus border */
+  --semi-color-focus-border: var(--nebula-border-focus);
+  
+  /* Shadows */
+  --semi-color-shadow: rgba(15, 23, 42, 0.08);
+  
+  /* Overlay backgrounds */
+  --semi-color-overlay-bg: var(--nebula-bg-overlay);
+  --semi-color-nav-bg: var(--nebula-bg-surface);
+  
+  /* Highlight */
+  --semi-color-highlight-bg: rgba(91, 124, 153, 0.12);
+  --semi-color-highlight: var(--nebula-brand-primary);
+  
+  /* Data visualization colors */
+  --semi-color-data-0: #5b7c99;
+  --semi-color-data-1: #1d4ed8;
+  --semi-color-data-2: #14b8a6;
+  --semi-color-data-3: #8b5cf6;
+  --semi-color-data-4: #f59e0b;
+  --semi-color-data-5: #ef4444;
+  --semi-color-data-6: #0ea5e9;
+  --semi-color-data-7: #10b981;
+  --semi-color-data-8: #6366f1;
+  --semi-color-data-9: #f472b6;
+  --semi-color-data-10: #38bdf8;
+  --semi-color-data-11: #fdba74;
+  --semi-color-data-12: #a78bfa;
+  --semi-color-data-13: #f97316;
+  --semi-color-data-14: #22d3ee;
+  --semi-color-data-15: #34d399;
+  --semi-color-data-16: #818cf8;
+  --semi-color-data-17: #fcd34d;
+  --semi-color-data-18: #e879f9;
+  --semi-color-data-19: #2dd4bf;
+}
+
+html.dark,
+[theme-mode='dark'] {
+  /* Dark mode overrides for Semi UI */
+  --semi-color-white: #020617;
+  --semi-color-black: #ffffff;
+  --semi-color-primary: var(--nebula-brand-primary);
+  --semi-color-primary-hover: var(--nebula-brand-primary-hover);
+  --semi-color-primary-active: var(--nebula-brand-primary-active);
+  --semi-color-primary-disabled: rgba(123, 159, 189, 0.35);
+  --semi-color-primary-light-default: rgba(123, 159, 189, 0.12);
+  --semi-color-primary-light-hover: rgba(123, 159, 189, 0.18);
+  --semi-color-primary-light-active: rgba(123, 159, 189, 0.25);
+  
+  --semi-color-bg-0: var(--nebula-bg-base);
+  --semi-color-bg-1: var(--nebula-bg-surface);
+  --semi-color-bg-2: var(--nebula-bg-elevated);
+  --semi-color-bg-3: var(--nebula-surface-secondary);
+  --semi-color-bg-4: var(--nebula-surface-tertiary);
+  
+  --semi-color-text-0: var(--nebula-text-primary);
+  --semi-color-text-1: var(--nebula-text-secondary);
+  --semi-color-text-2: var(--nebula-text-tertiary);
+  --semi-color-text-3: var(--nebula-text-quaternary);
+  
+  --semi-color-border: var(--nebula-border-default);
+  
+  --semi-color-fill-0: var(--nebula-surface-primary);
+  --semi-color-fill-1: var(--nebula-surface-secondary);
+  --semi-color-fill-2: var(--nebula-surface-tertiary);
+  
+  --semi-color-link: var(--nebula-text-link);
+  --semi-color-link-hover: var(--nebula-text-link-hover);
+  --semi-color-link-active: var(--nebula-text-link-hover);
+  --semi-color-link-visited: #a78bfa;
+  
+  --semi-color-secondary: var(--nebula-aurora-teal);
+  --semi-color-secondary-hover: var(--nebula-aurora-teal-hover);
+  --semi-color-secondary-active: var(--nebula-aurora-teal-hover);
+  --semi-color-secondary-disabled: rgba(94, 234, 212, 0.32);
+  --semi-color-secondary-light-default: rgba(94, 234, 212, 0.12);
+  --semi-color-secondary-light-hover: rgba(94, 234, 212, 0.18);
+  --semi-color-secondary-light-active: rgba(94, 234, 212, 0.24);
+  
+  --semi-color-tertiary: var(--nebula-aurora-purple);
+  --semi-color-tertiary-hover: var(--nebula-aurora-purple-hover);
+  --semi-color-tertiary-active: var(--nebula-aurora-purple-hover);
+  --semi-color-tertiary-light-default: rgba(167, 139, 250, 0.12);
+  --semi-color-tertiary-light-hover: rgba(167, 139, 250, 0.18);
+  --semi-color-tertiary-light-active: rgba(167, 139, 250, 0.24);
+  
+  --semi-color-default: var(--nebula-gray-400);
+  --semi-color-default-hover: var(--nebula-gray-300);
+  --semi-color-default-active: var(--nebula-gray-200);
+  
+  --semi-color-success: var(--nebula-success-600);
+  --semi-color-success-hover: var(--nebula-success-500);
+  --semi-color-success-active: var(--nebula-success-500);
+  --semi-color-success-disabled: rgba(52, 211, 153, 0.35);
+  --semi-color-success-light-default: var(--nebula-success-bg);
+  --semi-color-success-light-hover: rgba(52, 211, 153, 0.16);
+  --semi-color-success-light-active: rgba(52, 211, 153, 0.24);
+  
+  --semi-color-warning: var(--nebula-warning-600);
+  --semi-color-warning-hover: var(--nebula-warning-500);
+  --semi-color-warning-active: var(--nebula-warning-500);
+  --semi-color-warning-light-default: var(--nebula-warning-bg);
+  --semi-color-warning-light-hover: rgba(251, 191, 36, 0.18);
+  --semi-color-warning-light-active: rgba(251, 191, 36, 0.26);
+  
+  --semi-color-danger: var(--nebula-error-600);
+  --semi-color-danger-hover: var(--nebula-error-500);
+  --semi-color-danger-active: var(--nebula-error-500);
+  --semi-color-danger-light-default: var(--nebula-error-bg);
+  --semi-color-danger-light-hover: rgba(248, 113, 113, 0.16);
+  --semi-color-danger-light-active: rgba(248, 113, 113, 0.24);
+  
+  --semi-color-info: var(--nebula-info-600);
+  --semi-color-info-hover: var(--nebula-info-500);
+  --semi-color-info-active: var(--nebula-info-500);
+  --semi-color-info-disabled: rgba(96, 165, 250, 0.35);
+  --semi-color-info-light-default: var(--nebula-info-bg);
+  --semi-color-info-light-hover: rgba(96, 165, 250, 0.16);
+  --semi-color-info-light-active: rgba(96, 165, 250, 0.24);
+  
+  --semi-color-disabled-text: var(--nebula-text-disabled);
+  --semi-color-disabled-border: var(--nebula-border-subtle);
+  --semi-color-disabled-bg: var(--nebula-interactive-disabled);
+  --semi-color-disabled-fill: rgba(71, 85, 105, 0.65);
+  
+  --semi-color-focus-border: var(--nebula-border-focus);
+  --semi-color-shadow: rgba(0, 0, 0, 0.15);
+  
+  --semi-color-overlay-bg: var(--nebula-bg-overlay);
+  --semi-color-nav-bg: var(--nebula-bg-surface);
+  
+  --semi-color-highlight-bg: rgba(123, 159, 189, 0.12);
+  --semi-color-highlight: var(--nebula-brand-primary);
+  
+  /* Data visualization colors (dark mode adjusted) */
+  --semi-color-data-0: #7b9fbd;
+  --semi-color-data-1: #60a5fa;
+  --semi-color-data-2: #5eead4;
+  --semi-color-data-3: #a78bfa;
+  --semi-color-data-4: #fbbf24;
+  --semi-color-data-5: #f87171;
+  --semi-color-data-6: #38bdf8;
+  --semi-color-data-7: #34d399;
+  --semi-color-data-8: #818cf8;
+  --semi-color-data-9: #f9a8d4;
+  --semi-color-data-10: #67e8f9;
+  --semi-color-data-11: #fcd34d;
+  --semi-color-data-12: #c4b5fd;
+  --semi-color-data-13: #fb923c;
+  --semi-color-data-14: #5eead4;
+  --semi-color-data-15: #6ee7b7;
+  --semi-color-data-16: #a5b4fc;
+  --semi-color-data-17: #fde047;
+  --semi-color-data-18: #f0abfc;
+  --semi-color-data-19: #99f6e4;
 }
