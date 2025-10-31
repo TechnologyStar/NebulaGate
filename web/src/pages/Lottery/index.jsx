@@ -22,7 +22,7 @@ import { Button, Card, Typography, Toast, Modal, List, Space, Tag } from '@douyi
 import { API } from '../../helpers';
 import { renderQuota } from '../../helpers/render';
 import { useTranslation } from 'react-i18next';
-import { IconGift, IconHistoryStroked, IconSpin } from '@douyinfe/semi-icons';
+import { IconGift, IconHistory, IconSpin } from '@douyinfe/semi-icons';
 
 const { Title, Text } = Typography;
 
@@ -140,7 +140,7 @@ const Lottery = () => {
         </div>
 
         <div className='text-center'>
-          <Button icon={<IconHistoryStroked />} onClick={showHistory}>
+          <Button icon={<IconHistory />} onClick={showHistory}>
             {t('lottery.view_history', '查看抽奖记录')}
           </Button>
         </div>

@@ -22,7 +22,7 @@ import { Button, Card, Typography, Toast, Space, Modal, List } from '@douyinfe/s
 import { API } from '../../helpers';
 import { renderQuota } from '../../helpers/render';
 import { useTranslation } from 'react-i18next';
-import { IconCheckCircleStroked, IconGift, IconHistoryStroked } from '@douyinfe/semi-icons';
+import { IconCheckCircleStroked, IconGift, IconHistory } from '@douyinfe/semi-icons';
 
 const { Title, Text } = Typography;
 
@@ -186,7 +186,7 @@ const CheckIn = () => {
         </div>
 
         <div className='text-center'>
-          <Button icon={<IconHistoryStroked />} onClick={showHistory}>
+          <Button icon={<IconHistory />} onClick={showHistory}>
             {t('checkin.view_history', '查看签到历史')}
           </Button>
         </div>

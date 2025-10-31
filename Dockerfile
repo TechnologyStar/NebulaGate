@@ -14,8 +14,8 @@ RUN set -eux; \
 RUN apk add --no-cache git python3 build-base bash
 
 # 先复制 manifest（利于缓存），再装依赖
-COPY web/package.json web/bun.lockb* ./
-RUN if [ -f bun.lockb ]; then bun install --frozen-lockfile; else bun install; fi
+COPY web/package.json web/bun.lock* ./
+RUN if [ -f bun.lock ] || [ -f bun.lockb ]; then bun install --frozen-lockfile; else bun install; fi
 
 # 再复制剩余源码
 COPY web/ ./
