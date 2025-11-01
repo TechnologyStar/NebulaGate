@@ -6,16 +6,12 @@ ENV BUN_ENABLE_TELEMETRY=0
 # 一些老的 alpine 镜像默认仓库会过期，先把仓库指向 latest-stable 并更新索引
 RUN set -eux; \
     sed -i -E 's#https?://.*/alpine/v[0-9.]+/#https://dl-cdn.alpinelinux.org/alpine/latest-stable/#g' /etc/apk/repositories; \
-    apk update || true
+    apk update
 
 # 构建所需工具：
 # - build-base: 包含 make/gcc/g++
 # - libc6-compat: 兼容层，避免 esbuild/sharp 等预编译二进制在 musl 下崩溃
-RUN apk add --no-cache git python3 build-base bash curl ca-certificates || \
-    (echo "primary repository failed, retrying with latest-stable mirror" && \
-     apk add --no-cache --repository=https://dl-cdn.alpinelinux.org/alpine/latest-stable/main \
-         --repository=https://dl-cdn.alpinelinux.org/alpine/latest-stable/community \
-         git python3 build-base bash curl ca-certificates)
+RUN apk add --no-cache git python3 build-base bash
 
 # 先复制 manifest（利于缓存），再装依赖
 COPY web/package.json web/bun.lock* ./
@@ -43,9 +39,11 @@ RUN (bun run build --verbose || bun run build || bun x vite build --logLevel inf
 FROM golang:1.25.1-alpine AS gobuilder
 WORKDIR /build
 
+# 安装 git 以支持 Go 模块下载
+RUN apk add --no-cache git
+
 # 设置构建环境变量
 ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64
-ENV GOPROXY=https://goproxy.cn,direct
 
 # 先拉 go 依赖（利于缓存）
 COPY go.mod go.sum ./
@@ -62,8 +60,7 @@ RUN go build -trimpath -ldflags "-s -w" -o /out/nebulagate .
 FROM alpine:3.20
 WORKDIR /app
 ENV TZ=America/Chicago
-RUN apk add --no-cache ca-certificates tzdata || apk add --no-cache --repository=https://dl-cdn.alpinelinux.org/alpine/latest-stable/main ca-certificates tzdata
-RUN update-ca-certificates || true
+RUN apk add --no-cache ca-certificates tzdata && update-ca-certificates
 
 # 拷贝二进制与前端静态资源
 COPY --from=gobuilder  /out/nebulagate /app/nebulagate
