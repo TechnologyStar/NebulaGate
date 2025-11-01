@@ -1,17 +1,9 @@
 # ==================== Stage 1: Web (Bun + Vite) ====================
-FROM oven/bun:1.1.29-alpine AS webbuilder
+FROM oven/bun:1.1.29 AS webbuilder
 WORKDIR /app/web
 ENV BUN_ENABLE_TELEMETRY=0
 
-# 一些老的 alpine 镜像默认仓库会过期，先把仓库指向 latest-stable 并更新索引
-RUN set -eux; \
-    sed -i -E 's#https?://.*/alpine/v[0-9.]+/#https://dl-cdn.alpinelinux.org/alpine/latest-stable/#g' /etc/apk/repositories; \
-    apk update
-
-# 构建所需工具：
-# - build-base: 包含 make/gcc/g++
-# - libc6-compat: 兼容层，避免 esbuild/sharp 等预编译二进制在 musl 下崩溃
-RUN apk add --no-cache git python3 build-base bash
+# Bun 镜像已经包含必要的构建工具
 
 # 先复制 manifest（利于缓存），再装依赖
 COPY web/package.json web/bun.lock* ./
@@ -36,7 +28,7 @@ RUN (bun run build --verbose || bun run build || bun x vite build --logLevel inf
 
 # ==================== Stage 2: Go Builder（稳定版 Golang） ====================
 # go.mod 指定了 Go 1.25.1；如果基础镜像版本过低，`go mod download` 会直接报错
-FROM golang:1.25.1-alpine AS gobuilder
+FROM golang:1.25.1 AS gobuilder
 WORKDIR /build
 ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64
 
@@ -52,10 +44,15 @@ COPY --from=webbuilder /app/web/dist ./web/dist
 RUN go build -trimpath -ldflags "-s -w" -o /out/nebulagate .
 
 # ==================== Stage 3: Runtime ====================
-FROM alpine:3.20
+FROM debian:12-slim
 WORKDIR /app
-ENV TZ=America/Chicago
-RUN apk add --no-cache ca-certificates tzdata && update-ca-certificates
+ENV TZ=America/Chicago DEBIAN_FRONTEND=noninteractive
+RUN set -eux; \
+    apt-get update || (sed -i 's|deb.debian.org|mirrors.ustc.edu.cn|g' /etc/apt/sources.list && apt-get update); \
+    apt-get install -y --no-install-recommends \
+      ca-certificates \
+      tzdata; \
+    rm -rf /var/lib/apt/lists/*
 
 # 拷贝二进制与前端静态资源
 COPY --from=gobuilder  /out/nebulagate /app/nebulagate
