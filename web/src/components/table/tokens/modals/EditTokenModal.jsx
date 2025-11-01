@@ -62,6 +62,7 @@ const EditTokenModal = (props) => {
   const formApiRef = useRef(null);
   const [models, setModels] = useState([]);
   const [groups, setGroups] = useState([]);
+  const [selectedExpiryPreset, setSelectedExpiryPreset] = useState('never');
   const isEdit = props.editingToken.id !== undefined;
 
   const getInitValues = () => ({
@@ -80,7 +81,7 @@ const EditTokenModal = (props) => {
     props.handleClose();
   };
 
-  const setExpiredTime = (month, day, hour, minute) => {
+  const setExpiredTime = (presetKey, month, day, hour, minute) => {
     let now = new Date();
     let timestamp = now.getTime() / 1000;
     let seconds = month * 30 * 24 * 60 * 60;
@@ -94,7 +95,36 @@ const EditTokenModal = (props) => {
     } else {
       formApiRef.current.setValue('expired_time', -1);
     }
+    setSelectedExpiryPreset(presetKey);
   };
+
+  const resetPresetAccordingToValue = (value) => {
+    if (value === -1 || value === '-1') {
+      setSelectedExpiryPreset('never');
+      return;
+    }
+    const targetTime = typeof value === 'number' ? value * 1000 : Date.parse(value);
+    if (Number.isNaN(targetTime)) {
+      setSelectedExpiryPreset(null);
+      return;
+    }
+    const now = Date.now();
+    const diffInSeconds = Math.round((targetTime - now) / 1000);
+    const presets = {
+      oneMonth: 30 * 24 * 60 * 60,
+      oneDay: 24 * 60 * 60,
+      oneHour: 60 * 60,
+    };
+    const matchedPreset = Object.entries(presets).find(([, seconds]) => {
+      return Math.abs(diffInSeconds - seconds) <= 60;
+    });
+    if (matchedPreset) {
+      setSelectedExpiryPreset(matchedPreset[0]);
+      return;
+    }
+    setSelectedExpiryPreset('custom');
+  };
+
 
   const loadModels = async () => {
     let res = await API.get(`/api/user/models`);
@@ -165,6 +195,7 @@ const EditTokenModal = (props) => {
       }
       if (formApiRef.current) {
         formApiRef.current.setValues({ ...getInitValues(), ...data });
+        resetPresetAccordingToValue(data.expired_time);
       }
     } else {
       showError(message);
@@ -175,7 +206,9 @@ const EditTokenModal = (props) => {
   useEffect(() => {
     if (formApiRef.current) {
       if (!isEdit) {
-        formApiRef.current.setValues(getInitValues());
+        const initValues = getInitValues();
+        formApiRef.current.setValues(initValues);
+        resetPresetAccordingToValue(initValues.expired_time);
       }
     }
     loadModels();
@@ -187,10 +220,13 @@ const EditTokenModal = (props) => {
       if (isEdit) {
         loadToken();
       } else {
-        formApiRef.current?.setValues(getInitValues());
+        const initValues = getInitValues();
+        formApiRef.current?.setValues(initValues);
+        resetPresetAccordingToValue(initValues.expired_time);
       }
     } else {
       formApiRef.current?.reset();
+      setSelectedExpiryPreset(null);
     }
   }, [props.visiable, props.editingToken.id]);
 
@@ -275,7 +311,9 @@ const EditTokenModal = (props) => {
       }
     }
     setLoading(false);
-    formApiRef.current?.setValues(getInitValues());
+    const initValues = getInitValues();
+    formApiRef.current?.setValues(initValues);
+    resetPresetAccordingToValue(initValues.expired_time);
   };
 
   return (
@@ -407,36 +445,44 @@ const EditTokenModal = (props) => {
                       ]}
                       showClear
                       style={{ width: '100%' }}
+                      onChange={(value) => {
+                        if (!value) {
+                          formApiRef.current?.setValue('expired_time', -1);
+                          resetPresetAccordingToValue(-1);
+                        } else {
+                          resetPresetAccordingToValue(value);
+                        }
+                      }}
                     />
                   </Col>
                   <Col xs={24} sm={24} md={24} lg={14} xl={14}>
                     <Form.Slot label={t('过期时间快捷设置')}>
                       <Space wrap>
                         <Button
-                          theme='light'
+                          theme={selectedExpiryPreset === 'never' ? 'solid' : 'light'}
                           type='primary'
-                          onClick={() => setExpiredTime(0, 0, 0, 0)}
+                          onClick={() => setExpiredTime('never', 0, 0, 0, 0)}
                         >
                           {t('永不过期')}
                         </Button>
                         <Button
-                          theme='light'
-                          type='tertiary'
-                          onClick={() => setExpiredTime(1, 0, 0, 0)}
+                          theme={selectedExpiryPreset === 'oneMonth' ? 'solid' : 'light'}
+                          type={selectedExpiryPreset === 'oneMonth' ? 'primary' : 'tertiary'}
+                          onClick={() => setExpiredTime('oneMonth', 1, 0, 0, 0)}
                         >
                           {t('一个月')}
                         </Button>
                         <Button
-                          theme='light'
-                          type='tertiary'
-                          onClick={() => setExpiredTime(0, 1, 0, 0)}
+                          theme={selectedExpiryPreset === 'oneDay' ? 'solid' : 'light'}
+                          type={selectedExpiryPreset === 'oneDay' ? 'primary' : 'tertiary'}
+                          onClick={() => setExpiredTime('oneDay', 0, 1, 0, 0)}
                         >
                           {t('一天')}
                         </Button>
                         <Button
-                          theme='light'
-                          type='tertiary'
-                          onClick={() => setExpiredTime(0, 0, 1, 0)}
+                          theme={selectedExpiryPreset === 'oneHour' ? 'solid' : 'light'}
+                          type={selectedExpiryPreset === 'oneHour' ? 'primary' : 'tertiary'}
+                          onClick={() => setExpiredTime('oneHour', 0, 0, 1, 0)}
                         >
                           {t('一小时')}
                         </Button>

@@ -51,7 +51,7 @@ const DashboardHeader = ({
           icon={<RefreshCw size={16} />}
           onClick={refresh}
           loading={loading}
-          className={`bg-blue-500 hover:bg-blue-600 ${ICON_BUTTON_CLASS}`}
+          className={`bg-blue-700 hover:bg-blue-800 ${ICON_BUTTON_CLASS}`}
         />
       </div>
     </div>

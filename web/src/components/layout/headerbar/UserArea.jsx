@@ -63,7 +63,7 @@ const UserArea = ({
                 onClick={() => {
                   navigate('/console/personal');
                 }}
-                className='!px-3 !py-1.5 !text-sm !text-semi-color-text-0 hover:!bg-semi-color-fill-1 dark:!text-gray-200 dark:hover:!bg-blue-500 dark:hover:!text-white'
+                className='!px-3 !py-1.5 !text-sm !text-semi-color-text-0 hover:!bg-semi-color-fill-1 dark:!text-gray-200 dark:hover:!bg-blue-700 dark:hover:!text-white'
               >
                 <div className='flex items-center gap-2'>
                   <IconUserSetting
@@ -77,7 +77,7 @@ const UserArea = ({
                 onClick={() => {
                   navigate('/console/token');
                 }}
-                className='!px-3 !py-1.5 !text-sm !text-semi-color-text-0 hover:!bg-semi-color-fill-1 dark:!text-gray-200 dark:hover:!bg-blue-500 dark:hover:!text-white'
+                className='!px-3 !py-1.5 !text-sm !text-semi-color-text-0 hover:!bg-semi-color-fill-1 dark:!text-gray-200 dark:hover:!bg-blue-700 dark:hover:!text-white'
               >
                 <div className='flex items-center gap-2'>
                   <IconKey
@@ -91,7 +91,7 @@ const UserArea = ({
                 onClick={() => {
                   navigate('/console/topup');
                 }}
-                className='!px-3 !py-1.5 !text-sm !text-semi-color-text-0 hover:!bg-semi-color-fill-1 dark:!text-gray-200 dark:hover:!bg-blue-500 dark:hover:!text-white'
+                className='!px-3 !py-1.5 !text-sm !text-semi-color-text-0 hover:!bg-semi-color-fill-1 dark:!text-gray-200 dark:hover:!bg-blue-700 dark:hover:!text-white'
               >
                 <div className='flex items-center gap-2'>
                   <IconCreditCard
@@ -103,7 +103,7 @@ const UserArea = ({
               </Dropdown.Item>
               <Dropdown.Item
                 onClick={logout}
-                className='!px-3 !py-1.5 !text-sm !text-semi-color-text-0 hover:!bg-semi-color-fill-1 dark:!text-gray-200 dark:hover:!bg-red-500 dark:hover:!text-white'
+                className='!px-3 !py-1.5 !text-sm !text-semi-color-text-0 hover:!bg-semi-color-fill-1 dark:!text-gray-200 dark:hover:!bg-red-600 dark:hover:!text-white'
               >
                 <div className='flex items-center gap-2'>
                   <IconExit

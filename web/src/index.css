@@ -2262,13 +2262,15 @@ html.dark .nebula-divider {
 /* ====== Header Enhancements ====== */
 :root {
   --nebula-header-height: 68px;
-  --nebula-header-bg: rgba(255, 255, 255, 0.85);
+  --nebula-header-bg: rgba(248, 250, 252, 0.75);
   --nebula-header-border: rgba(15, 23, 42, 0.08);
+  --nebula-header-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.02);
 }
 
 html.dark {
-  --nebula-header-bg: rgba(15, 23, 42, 0.85);
+  --nebula-header-bg: rgba(15, 23, 42, 0.75);
   --nebula-header-border: rgba(100, 150, 220, 0.12);
+  --nebula-header-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2);
 }
 
 .nebula-header {
@@ -2277,6 +2279,8 @@ html.dark {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--nebula-header-border);
+  border-radius: 0 0 16px 16px;
+  box-shadow: var(--nebula-header-shadow);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
