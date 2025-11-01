@@ -18,11 +18,13 @@ type PlanAssignment struct {
     BillingMode         string         `json:"billing_mode" gorm:"size:16;not null;default:'plan'"`
     ActivatedAt         time.Time      `json:"activated_at" gorm:"not null;index:idx_plan_assignments_window,priority:1"`
     DeactivatedAt       *time.Time     `json:"deactivated_at" gorm:"index:idx_plan_assignments_window,priority:2"`
+    ExpiresAt           *time.Time     `json:"expires_at" gorm:"index"`
     RolloverPolicy      string         `json:"rollover_policy" gorm:"size:16;not null;default:'none'"`
     RolloverAmount      int64          `json:"rollover_amount" gorm:"type:bigint;not null;default:0"`
     RolloverExpiresAt   *time.Time     `json:"rollover_expires_at"`
     AutoFallbackEnabled bool           `json:"auto_fallback_enabled" gorm:"not null;default:false"`
     FallbackPlanId      *int           `json:"fallback_plan_id" gorm:"index"`
+    EnforcementMetadata JSONValue      `json:"enforcement_metadata" gorm:"type:json"`
     Metadata            JSONValue      `json:"metadata" gorm:"type:json"`
     CreatedAt           time.Time      `json:"created_at"`
     UpdatedAt           time.Time      `json:"updated_at"`

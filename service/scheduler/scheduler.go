@@ -54,7 +54,8 @@ func startTicker(ctx context.Context, interval time.Duration, fn func()) {
 }
 
 // RunPlanCycleResetOnce executes one sweep that resets expired usage counters
-// based on the associated plan's cycle. The operation is idempotent.
+// based on the associated plan's cycle. Also handles plan expiry via expires_at.
+// The operation is idempotent.
 func RunPlanCycleResetOnce(ctx context.Context) error {
     now := time.Now().UTC()
 
@@ -67,6 +68,32 @@ func RunPlanCycleResetOnce(ctx context.Context) error {
     var notifications []pendingNotify
 
     err := model.DB.Transaction(func(tx *gorm.DB) error {
+        // 1. Handle expired plan assignments
+        var expiredAssignments []model.PlanAssignment
+        if err := tx.Where("expires_at IS NOT NULL AND expires_at <= ? AND (deactivated_at IS NULL OR deactivated_at > ?)", now, now).Find(&expiredAssignments).Error; err != nil {
+            return err
+        }
+        for _, a := range expiredAssignments {
+            if err := tx.Model(&model.PlanAssignment{}).Where("id = ?", a.Id).Updates(map[string]any{
+                "deactivated_at":    now,
+                "rollover_amount":   0,
+                "rollover_policy":   common.RolloverPolicyNone,
+                "rollover_expires_at": gorm.Expr("NULL"),
+                "updated_at":        gorm.Expr("CURRENT_TIMESTAMP"),
+            }).Error; err != nil {
+                return err
+            }
+            common.SysLog(fmt.Sprintf("plan assignment expired: id=%d, subject=%s:%d", a.Id, a.SubjectType, a.SubjectId))
+            // Zero out any active usage counters
+            if err := tx.Model(&model.UsageCounter{}).Where("plan_assignment_id = ?", a.Id).Updates(map[string]any{
+                "consumed_amount": 0,
+                "updated_at":      gorm.Expr("CURRENT_TIMESTAMP"),
+            }).Error; err != nil {
+                return err
+            }
+        }
+
+        // 2. Handle cycle-based counter reset
         var expired []model.UsageCounter
         if err := tx.Where("cycle_end <= ?", now).Find(&expired).Error; err != nil {
             return err
