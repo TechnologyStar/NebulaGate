@@ -106,14 +106,44 @@ func GenerateVoucherBatch(
         batch.PlanGrantId = &planID
     }
 
-    err := model.DB.Create(batch).Error
+    err := model.DB.Transaction(func(tx *gorm.DB) error {
+        if err := tx.Create(batch).Error; err != nil {
+            return fmt.Errorf("failed to create voucher batch: %w", err)
+        }
+
+        voucherCodes := make([]*model.VoucherCode, count)
+        for i := 0; i < count; i++ {
+            code := generateVoucherCode(prefix)
+            voucherCode := &model.VoucherCode{
+                VoucherBatchId: batch.Id,
+                Code:           code,
+                Status:         model.VoucherCodeStatusAvailable,
+            }
+            if grantType == common.VoucherGrantTypePlan && planID > 0 {
+                voucherCode.PlanId = &planID
+            }
+            voucherCodes[i] = voucherCode
+        }
+
+        if err := tx.CreateInBatches(voucherCodes, 100).Error; err != nil {
+            return fmt.Errorf("failed to create voucher codes: %w", err)
+        }
+
+        return nil
+    })
     if err != nil {
-        return nil, fmt.Errorf("failed to create voucher batch: %w", err)
+        return nil, err
     }
 
     codes := make([]string, count)
-    for i := 0; i < count; i++ {
-        codes[i] = generateVoucherCode(prefix)
+    voucherCodes, err := model.GetVoucherCodesByBatch(batch.Id, "")
+    if err != nil {
+        return nil, fmt.Errorf("failed to retrieve generated codes: %w", err)
+    }
+    for i, vc := range voucherCodes {
+        if i < count {
+            codes[i] = vc.Code
+        }
     }
 
     return codes, nil
@@ -132,8 +162,24 @@ func RedeemVoucher(code string, userId int, username string) (*VoucherRedeemResu
     }
 
     err := model.DB.Transaction(func(tx *gorm.DB) error {
+        var voucherCode model.VoucherCode
+        err := tx.Where("code = ? AND deleted_at IS NULL", code).First(&voucherCode).Error
+        if err != nil {
+            if errors.Is(err, gorm.ErrRecordNotFound) {
+                return errors.New("invalid voucher code")
+            }
+            return fmt.Errorf("error loading voucher code: %w", err)
+        }
+
+        if voucherCode.Status == model.VoucherCodeStatusRedeemed {
+            return errors.New("voucher code already redeemed")
+        }
+        if voucherCode.Status == model.VoucherCodeStatusExpired {
+            return errors.New("voucher code has expired")
+        }
+
         var existingRedemption model.VoucherRedemption
-        err := tx.Where("code = ?", code).First(&existingRedemption).Error
+        err = tx.Where("code = ?", code).First(&existingRedemption).Error
         if err == nil {
             return errors.New("voucher code already redeemed")
         }
@@ -141,12 +187,11 @@ func RedeemVoucher(code string, userId int, username string) (*VoucherRedeemResu
             return fmt.Errorf("error checking redemption: %w", err)
         }
 
-        prefix := extractPrefix(code)
         var batch model.VoucherBatch
-        err = tx.Where("code_prefix = ? AND deleted_at IS NULL", prefix).First(&batch).Error
+        err = tx.Where("id = ? AND deleted_at IS NULL", voucherCode.VoucherBatchId).First(&batch).Error
         if err != nil {
             if errors.Is(err, gorm.ErrRecordNotFound) {
-                return errors.New("invalid voucher code")
+                return errors.New("voucher batch not found")
             }
             return fmt.Errorf("error loading voucher batch: %w", err)
         }
@@ -200,12 +245,18 @@ func RedeemVoucher(code string, userId int, username string) (*VoucherRedeemResu
             result.CreditAmount = batch.CreditAmount
             result.Message = fmt.Sprintf("Successfully redeemed %d credits", batch.CreditAmount)
         } else if batch.GrantType == common.VoucherGrantTypePlan {
-            if batch.PlanGrantId == nil || *batch.PlanGrantId <= 0 {
-                return errors.New("voucher batch has invalid plan configuration")
+            targetPlanId := 0
+            if voucherCode.PlanId != nil && *voucherCode.PlanId > 0 {
+                targetPlanId = *voucherCode.PlanId
+            } else if batch.PlanGrantId != nil && *batch.PlanGrantId > 0 {
+                targetPlanId = *batch.PlanGrantId
+            }
+            if targetPlanId <= 0 {
+                return errors.New("voucher does not reference a valid plan")
             }
 
             var plan model.Plan
-            err = tx.Where("id = ?", *batch.PlanGrantId).First(&plan).Error
+            err = tx.Where("id = ?", targetPlanId).First(&plan).Error
             if err != nil {
                 return fmt.Errorf("plan not found: %w", err)
             }
@@ -213,10 +264,15 @@ func RedeemVoucher(code string, userId int, username string) (*VoucherRedeemResu
             assignment := &model.PlanAssignment{
                 SubjectType:    common.AssignmentSubjectTypeUser,
                 SubjectId:      userId,
-                PlanId:         *batch.PlanGrantId,
+                PlanId:         targetPlanId,
                 BillingMode:    common.BillingModePlan,
                 ActivatedAt:    now,
                 RolloverPolicy: common.RolloverPolicyNone,
+            }
+
+            if plan.ValidityDays > 0 {
+                expiresAt := now.Add(time.Duration(plan.ValidityDays) * 24 * time.Hour)
+                assignment.ExpiresAt = &expiresAt
             }
 
             err = tx.Create(assignment).Error
@@ -225,17 +281,31 @@ func RedeemVoucher(code string, userId int, username string) (*VoucherRedeemResu
             }
 
             redemption.PlanAssignmentId = &assignment.Id
-            redemption.PlanGrantedId = batch.PlanGrantId
+            redemption.PlanGrantedId = &targetPlanId
 
-            result.PlanID = *batch.PlanGrantId
+            result.PlanID = targetPlanId
             result.PlanAssignmentID = assignment.Id
             result.Message = fmt.Sprintf("Successfully redeemed plan: %s", plan.Name)
         }
 
-        err = tx.Create(redemption).Error
-        if err != nil {
+        if err := tx.Create(redemption).Error; err != nil {
             return fmt.Errorf("failed to record redemption: %w", err)
         }
+
+        update := map[string]interface{}{
+            "status":              model.VoucherCodeStatusRedeemed,
+            "redeemed_at":         now,
+            "redeemed_by_user_id": userId,
+        }
+        if err := tx.Model(&model.VoucherCode{}).
+            Where("id = ? AND status IN ?", voucherCode.Id, []string{model.VoucherCodeStatusAvailable, model.VoucherCodeStatusIssued}).
+            Updates(update).Error; err != nil {
+            return fmt.Errorf("failed to update voucher code status: %w", err)
+        }
+
+        voucherCode.Status = model.VoucherCodeStatusRedeemed
+        voucherCode.RedeemedAt = &now
+        voucherCode.RedeemedByUserId = &userId
 
         result.Success = true
         return nil

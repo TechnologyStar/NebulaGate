@@ -35,12 +35,16 @@ type PreparedCharge struct {
     // Mode decided to use for primary attempt (plan|balance|auto[fallback])
     Mode string
     // Selected assignment when Mode is plan or auto and plan exists
-    Assignment *model.PlanAssignment
-    Plan       *model.Plan
-    CycleStart time.Time
-    CycleEnd   time.Time
-    // Remaining allowance in the selected plan (0 if none)
-    Allowance int64
+    Assignment      *model.PlanAssignment
+    Plan            *model.Plan
+    CycleStart      time.Time
+    CycleEnd        time.Time
+    Allowance       int64
+    TokenLimit      int64
+    TokenConsumed   int64
+    TokenAllowance  int64
+    AllowedModels   []string
+    ModelRestricted bool
 }
 
 // CommitParams defines input for CommitCharge.
@@ -104,6 +108,25 @@ func (be *BillingEngine) PrepareCharge(ctx context.Context, subjectKey string, r
         return nil, err
     }
     pc.Plan = &plan
+
+    pc.AllowedModels = plan.GetAllowedModels()
+    pc.ModelRestricted = false
+    if len(pc.AllowedModels) > 0 && relayInfo != nil && relayInfo.OriginModelName != "" {
+        if !plan.IsModelAllowed(relayInfo.OriginModelName) {
+            if assignment.AutoFallbackEnabled || pc.Mode == common.BillingModeFallback {
+                pc.ModelRestricted = true
+                pc.Mode = common.BillingModeBalance
+            } else {
+                return nil, &ErrModelRestricted{
+                    PlanId:   plan.Id,
+                    PlanName: plan.Name,
+                    Model:    relayInfo.OriginModelName,
+                    Allowed:  pc.AllowedModels,
+                }
+            }
+        }
+    }
+
     start, end := getCycleWindow(plan.CycleType, time.Now().UTC())
     pc.CycleStart, pc.CycleEnd = start, end
     // Load current usage for the cycle
@@ -123,6 +146,34 @@ func (be *BillingEngine) PrepareCharge(ctx context.Context, subjectKey string, r
         allowance = 0
     }
     pc.Allowance = allowance
+
+    // Populate token limit and consumption
+    pc.TokenLimit = plan.TokenLimit
+    if plan.QuotaMetric == common.PlanQuotaMetricTokens {
+        pc.TokenConsumed = consumed
+        if plan.TokenLimit > 0 {
+            tokenAllowance := plan.TokenLimit - consumed
+            if tokenAllowance < 0 {
+                tokenAllowance = 0
+            }
+            pc.TokenAllowance = tokenAllowance
+        }
+    } else if plan.TokenLimit > 0 {
+        var tokenCounter model.UsageCounter
+        err = be.DB.Where("plan_assignment_id = ? AND metric = ? AND cycle_start = ?",
+            assignment.Id, common.PlanQuotaMetricTokens, start).First(&tokenCounter).Error
+        if err == nil {
+            pc.TokenConsumed = tokenCounter.ConsumedAmount
+        } else if !errors.Is(err, gorm.ErrRecordNotFound) {
+            return nil, err
+        }
+        tokenAllowance := plan.TokenLimit - pc.TokenConsumed
+        if tokenAllowance < 0 {
+            tokenAllowance = 0
+        }
+        pc.TokenAllowance = tokenAllowance
+    }
+
     // When the assignment requests fallback or plan exhausted, we will decide on commit
     return pc, nil
 }
@@ -176,6 +227,11 @@ func (be *BillingEngine) CommitCharge(ctx context.Context, in *CommitParams) (*m
             if pc.Assignment == nil || pc.Plan == nil {
                 return fmt.Errorf("plan info missing")
             }
+            totalTokens := in.PromptTokens + in.CompletionTokens
+            chargeAmount := in.Amount
+            if pc.Plan.QuotaMetric == common.PlanQuotaMetricTokens && totalTokens > 0 {
+                chargeAmount = totalTokens
+            }
             // Lock counter row for update if exists
             counter, err := model.GetUsageCounterTx(tx, pc.Assignment.Id, pc.Plan.QuotaMetric, pc.CycleStart)
             if err != nil {
@@ -186,20 +242,19 @@ func (be *BillingEngine) CommitCharge(ctx context.Context, in *CommitParams) (*m
                 consumed = counter.ConsumedAmount
             }
             remaining := pc.Plan.QuotaAmount + pc.Assignment.RolloverAmount - consumed
-            if remaining < in.Amount {
+            if remaining < chargeAmount {
                 // Not enough plan allowance
                 // If fallback enabled, switch to balance
                 if pc.Assignment.AutoFallbackEnabled || pc.Mode == common.BillingModeFallback {
                     mode = common.BillingModeBalance
                     // Update log metadata to reflect fallback
-                    // Delete created log and recreate at end with correct mode inside same tx.
                     if err := tx.Delete(&model.RequestLog{}, "id = ?", log.Id).Error; err != nil {
                         return err
                     }
                     // Recreate idempotency record with same request id and updated mode
                     log = BuildRequestLog(in.RequestId, pc.SubjectType, pc.SubjectId, in.ModelAlias, in.Upstream,
-                        pc.Assignment, in.UsageMetric, in.PromptTokens, in.CompletionTokens, in.PromptTokens+in.CompletionTokens, in.LatencyMs, in.Amount, mode,
-                        AuditMetadata{Mode: mode, Amount: in.Amount, SubjectKey: fmt.Sprintf("%s:%d", pc.SubjectType, pc.SubjectId), Engine: "billing_engine", Idempotent: false})
+                        pc.Assignment, in.UsageMetric, in.PromptTokens, in.CompletionTokens, totalTokens, in.LatencyMs, chargeAmount, mode,
+                        AuditMetadata{Mode: mode, Amount: chargeAmount, SubjectKey: fmt.Sprintf("%s:%d", pc.SubjectType, pc.SubjectId), Engine: "billing_engine", Idempotent: false})
                     if err := tx.Create(log).Error; err != nil {
                         if isUniqueConstraintError(err) {
                             var existing model.RequestLog
@@ -212,14 +267,43 @@ func (be *BillingEngine) CommitCharge(ctx context.Context, in *CommitParams) (*m
                     }
                     // then go to balance branch below after switch
                 } else {
-                    return &ErrPlanExhausted{AssignmentId: pc.Assignment.Id, Metric: pc.Plan.QuotaMetric, Remaining: remaining, Needed: in.Amount}
+                    return &ErrPlanExhausted{AssignmentId: pc.Assignment.Id, Metric: pc.Plan.QuotaMetric, Remaining: remaining, Needed: chargeAmount}
                 }
             } else {
-                // Increment usage inside tx
-                if err := model.IncrementUsageCounterTx(tx, pc.Assignment.Id, pc.Plan.QuotaMetric, in.Amount, pc.CycleStart, pc.CycleEnd); err != nil {
-                    return err
+                // Increment usage inside tx for the main metric
+                if chargeAmount != 0 {
+                    if err := model.IncrementUsageCounterTx(tx, pc.Assignment.Id, pc.Plan.QuotaMetric, chargeAmount, pc.CycleStart, pc.CycleEnd); err != nil {
+                        return err
+                    }
+                }
+
+                // Track token usage separately if token limit is configured and metric is not already tokens
+                if pc.Plan.TokenLimit > 0 && totalTokens > 0 {
+                    if pc.Plan.QuotaMetric == common.PlanQuotaMetricTokens {
+                        remainingTokens := pc.Plan.TokenLimit - consumed
+                        if remainingTokens < totalTokens {
+                            return &ErrPlanExhausted{AssignmentId: pc.Assignment.Id, Metric: common.PlanQuotaMetricTokens, Remaining: remainingTokens, Needed: totalTokens}
+                        }
+                    } else {
+                        tokenCounter, err := model.GetUsageCounterTx(tx, pc.Assignment.Id, common.PlanQuotaMetricTokens, pc.CycleStart)
+                        if err != nil {
+                            return err
+                        }
+                        consumedTokens := int64(0)
+                        if tokenCounter != nil {
+                            consumedTokens = tokenCounter.ConsumedAmount
+                        }
+                        remainingTokens := pc.Plan.TokenLimit - consumedTokens
+                        if remainingTokens < totalTokens {
+                            return &ErrPlanExhausted{AssignmentId: pc.Assignment.Id, Metric: common.PlanQuotaMetricTokens, Remaining: remainingTokens, Needed: totalTokens}
+                        }
+                        if err := model.IncrementUsageCounterTx(tx, pc.Assignment.Id, common.PlanQuotaMetricTokens, totalTokens, pc.CycleStart, pc.CycleEnd); err != nil {
+                            return err
+                        }
+                    }
                 }
             }
+
         case common.BillingModeBalance:
             // Deduct from user (and token if not unlimited) atomically with conditions
             // Lock user row

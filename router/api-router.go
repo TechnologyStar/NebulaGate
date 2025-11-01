@@ -213,6 +213,9 @@ func SetApiRouter(router *gin.Engine) {
                 voucherAdminRoute.POST("/batch", controller.GenerateVouchers)
                 voucherAdminRoute.GET("/batch", controller.GetVoucherBatches)
                 voucherAdminRoute.GET("/batch/:batch_id/redemptions", controller.GetVoucherRedemptions)
+                voucherAdminRoute.GET("/batch/:batch_id/codes", controller.GetVoucherCodes)
+                voucherAdminRoute.POST("/code/:code_id/issue", controller.IssueVoucherCode)
+                voucherAdminRoute.POST("/code/:code_id/revoke", controller.RevokeVoucherCode)
             }
 
             voucherUserRoute := voucherRoute.Group("/")
