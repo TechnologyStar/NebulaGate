@@ -3,7 +3,7 @@ FROM oven/bun:1.1.29-alpine AS webbuilder
 WORKDIR /app/web
 ENV BUN_ENABLE_TELEMETRY=0
 
-# 某些旧 alpine 源会过期，统一指向 latest-stable 并更新索引
+# 避免旧源过期：统一切到 latest-stable；失败时忽略（后续还有重试）
 RUN set -eux; \
     sed -i -E 's#https?://.*/alpine/v[0-9.]+/#https://dl-cdn.alpinelinux.org/alpine/latest-stable/#g' /etc/apk/repositories; \
     apk update || true
@@ -15,14 +15,14 @@ RUN apk add --no-cache git python3 build-base bash curl ca-certificates || \
          --repository=https://dl-cdn.alpinelinux.org/alpine/latest-stable/community \
          git python3 build-base bash curl ca-certificates)
 
-# 先复制 manifest（利于缓存）
+# 先复制清单（利用缓存）
 COPY web/package.json web/bun.lock* ./
 RUN if [ -f bun.lock ] || [ -f bun.lockb ]; then bun install --frozen-lockfile; else bun install; fi
 
 # 再复制源码
 COPY web/ ./
 
-# 构建版本号：默认 dev，可被 --build-arg 覆盖
+# 版本号可由 --build-arg 覆盖
 ARG VITE_REACT_APP_VERSION=dev
 ENV VITE_REACT_APP_VERSION=${VITE_REACT_APP_VERSION}
 
@@ -30,63 +30,59 @@ ENV VITE_REACT_APP_VERSION=${VITE_REACT_APP_VERSION}
 RUN echo "Bun version:" && bun --version
 RUN bun pm ls || true
 
-# 内存限制（按 CI 机器内存大小调整）
+# 适当放大可用内存（按你的 CI 机器内存调整）
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 
 # 构建前端
 RUN (bun run build --verbose || bun run build || bun x vite build --logLevel info)
 
-# ==================== Stage 2: Go Builder（稳定版 Golang） ====================
-# 注：保持与 go.mod 的主/次版本一致。补丁版选用更高的补丁（兼容）。
-FROM golang:1.25.3-alpine AS gobuilder
+# 保障有产物（否则 go:embed 会在下一阶段编译时报错）
+RUN test -f /app/web/dist/index.html || (echo "ERROR: web/dist/index.html not found. Frontend build failed." && ls -la /app/web/dist || true && exit 1)
+
+
+# ==================== Stage 2: Go Builder（与 go.mod 对齐的稳定版 Go） ====================
+# go.mod 建议为：go 1.22
+FROM golang:1.22-alpine AS gobuilder
 WORKDIR /build
 
-# 可配置 CGO。默认 CGO=0 生成纯静态二进制；如依赖需要，可在构建时 --build-arg CGO_ENABLED=1
+# 可切换 CGO：默认 0 生成纯静态；若依赖需要 cgo，构建时传 --build-arg CGO_ENABLED=1
 ARG CGO_ENABLED=0
 ENV CGO_ENABLED=${CGO_ENABLED}
 ENV GOOS=linux GOARCH=amd64
 ENV GOPROXY=https://goproxy.cn,direct
-# 更详细的编译输出，便于定位失败原因
 ENV GOFLAGS="-v"
 
-# 若启用 CGO，则安装 C 工具链
-RUN if [ "${CGO_ENABLED}" = "1" ]; then \
-      apk add --no-cache build-base ca-certificates; \
-    else \
-      apk add --no-cache ca-certificates; \
-    fi
+# 基础包：git（拉取模块），必要时装 C 工具链
+RUN set -eux; \
+    apk add --no-cache ca-certificates git; \
+    if [ "${CGO_ENABLED}" = "1" ]; then apk add --no-cache build-base; fi
 
-# 预拉依赖（缓存）
+# 先拉 go 依赖（缓存友好）
 COPY go.mod go.sum ./
-RUN --mount=type=cache,target=/go/pkg/mod \
-    --mount=type=cache,target=/root/.cache/go-build \
-    go mod download
+RUN go mod download
 
 # 拷贝后端源码 + 前端产物
 COPY . .
 COPY --from=webbuilder /app/web/dist ./web/dist
 
-# 在 go:embed 编译前校验前端产物是否存在，给出清晰错误
-RUN test -f ./web/dist/index.html || (echo "ERROR: web/dist/index.html 不存在，前端构建可能失败" && ls -la ./web || true && exit 1)
+# 再次保证 dist 存在，减少“黑盒”失败
+RUN test -f ./web/dist/index.html || (echo "ERROR: ./web/dist/index.html missing in gobuilder stage." && ls -la ./web || true && exit 1)
 
-# 构建二进制（如 main 不在仓库根目录，替换 '.' 为实际主程序路径）
-RUN --mount=type=cache,target=/go/pkg/mod \
-    --mount=type=cache,target=/root/.cache/go-build \
-    go build -trimpath -ldflags "-s -w" -o /out/nebulagate .
+# 构建二进制（主程序在仓库根目录）
+RUN go build -trimpath -ldflags "-s -w" -o /out/nebulagate .
 
 # ==================== Stage 3: Runtime ====================
 FROM alpine:3.20
 WORKDIR /app
 ENV TZ=America/Chicago
-RUN apk add --no-cache ca-certificates tzdata || \
-    apk add --no-cache --repository=https://dl-cdn.alpinelinux.org/alpine/latest-stable/main ca-certificates tzdata
-RUN update-ca-certificates || true
+
+RUN apk add --no-cache ca-certificates tzdata && update-ca-certificates
 
 # 拷贝二进制与前端静态资源
 COPY --from=gobuilder  /out/nebulagate /app/nebulagate
 COPY --from=webbuilder /app/web/dist  /app/public
 
-# 运行目录/端口
+# 数据工作目录（挂卷）
 WORKDIR /data
 EXPOSE 3000
 
