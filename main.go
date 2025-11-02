@@ -94,6 +94,24 @@ func main() {
     // 数据看板
     go model.UpdateQuotaData()
 
+    go func() {
+        ticker := time.NewTicker(1 * time.Hour)
+        defer ticker.Stop()
+        for {
+            if !common.IsMasterNode {
+                <-ticker.C
+                continue
+            }
+            count, err := model.UpdateExpiredPackages()
+            if err != nil {
+                common.SysLog(fmt.Sprintf("failed to update expired user packages: %v", err))
+            } else if count > 0 {
+                common.SysLog(fmt.Sprintf("marked %d user packages as expired", count))
+            }
+            <-ticker.C
+        }
+    }()
+
     if os.Getenv("CHANNEL_UPDATE_FREQUENCY") != "" {
         frequency, err := strconv.Atoi(os.Getenv("CHANNEL_UPDATE_FREQUENCY"))
         if err != nil {

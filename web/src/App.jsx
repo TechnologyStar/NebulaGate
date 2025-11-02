@@ -52,6 +52,9 @@ import VoucherRedeem from './pages/Setting/VoucherRedeem';
 import CheckIn from './pages/CheckIn';
 import Lottery from './pages/Lottery';
 import Audit from './pages/Audit';
+import PackagePage from './pages/Package';
+import RedemptionCodePage from './pages/RedemptionCode';
+import UserPackagePage from './pages/UserPackage';
 
 const Home = lazy(() => import('./pages/Home'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -179,6 +182,30 @@ function App() {
             <AdminRoute>
               <PlansPage />
             </AdminRoute>
+          }
+        />
+        <Route
+          path='/console/packages'
+          element={
+            <AdminRoute>
+              <PackagePage />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path='/console/redemption-codes'
+          element={
+            <AdminRoute>
+              <RedemptionCodePage />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path='/console/user-packages'
+          element={
+            <PrivateRoute>
+              <UserPackagePage />
+            </PrivateRoute>
           }
         />
         <Route
