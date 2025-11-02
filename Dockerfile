@@ -1,22 +1,83 @@
 # syntax=docker/dockerfile:1.7
-FROM golang:1.25 AS build
-WORKDIR /src
 
-# 拷贝所有源码
+# ==================== Stage 1: Web (Bun + Vite) ====================
+FROM oven/bun:1.1.29-alpine AS webbuilder
+WORKDIR /app/web
+ENV BUN_ENABLE_TELEMETRY=0
+
+# 一些老的 alpine 镜像默认仓库会过期,先把仓库指向稳定版本并更新索引
+RUN set -eux; \
+    echo "https://dl-cdn.alpinelinux.org/alpine/v3.18/main" > /etc/apk/repositories; \
+    echo "https://dl-cdn.alpinelinux.org/alpine/v3.18/community" >> /etc/apk/repositories; \
+    apk update || \
+    (echo "https://mirrors.aliyun.com/alpine/v3.18/main" > /etc/apk/repositories && \
+     echo "https://mirrors.aliyun.com/alpine/v3.18/community" >> /etc/apk/repositories && \
+     apk update) || \
+    (echo "https://mirrors.tuna.tsinghua.edu.cn/alpine/v3.18/main" > /etc/apk/repositories && \
+     echo "https://mirrors.tuna.tsinghua.edu.cn/alpine/v3.18/community" >> /etc/apk/repositories && \
+     apk update) || true
+
+# 构建所需工具：
+# - build-base: 包含 make/gcc/g++
+# - libc6-compat: 兼容层，避免 esbuild/sharp 等预编译二进制在 musl 下崩溃
+RUN apk add --no-cache git python3 build-base bash curl ca-certificates || \
+    (echo "primary repository failed, switching to aliyun mirror" && \
+     echo "https://mirrors.aliyun.com/alpine/v3.18/main" > /etc/apk/repositories && \
+     echo "https://mirrors.aliyun.com/alpine/v3.18/community" >> /etc/apk/repositories && \
+     apk add --no-cache git python3 build-base bash curl ca-certificates) || \
+    (echo "aliyun mirror failed, switching to tsinghua mirror" && \
+     echo "https://mirrors.tuna.tsinghua.edu.cn/alpine/v3.18/main" > /etc/apk/repositories && \
+     echo "https://mirrors.tuna.tsinghua.edu.cn/alpine/v3.18/community" >> /etc/apk/repositories && \
+     apk add --no-cache git python3 build-base bash curl ca-certificates)
+
+# 先复制 manifest（利于缓存），再装依赖
+COPY web/package.json web/bun.lock* ./
+RUN if [ -f bun.lock ] || [ -f bun.lockb ]; then bun install --frozen-lockfile; else bun install; fi
+
+# 再复制剩余源码
+COPY web/ ./
+
+# 构建版本号：默认 dev，可被 --build-arg 覆盖
+ARG VITE_REACT_APP_VERSION=dev
+ENV VITE_REACT_APP_VERSION=${VITE_REACT_APP_VERSION}
+
+# 打印 bun 版本与依赖树，便于定位问题
+RUN echo "Bun version:" && bun --version
+RUN bun pm ls || true
+
+# 避免因内存不足导致构建中断（按 CI 机器内存大小调整）
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+
+# 构建（优先使用 package.json 的 build 脚本，不行再直接用 vite）
+RUN (bun run build --verbose || bun run build || bun x vite build --logLevel info)
+
+# ==================== Stage 2: Go Builder（稳定版 Golang） ====================
+# go.mod 指定了 Go 1.25.1；如果基础镜像版本过低，`go mod download` 会直接报错
+FROM golang:1.25-alpine AS gobuilder
+WORKDIR /build
+
+# 修复 alpine 镜像仓库（避免部分区域旧仓库失效）
+RUN set -eux; \
+    echo "https://dl-cdn.alpinelinux.org/alpine/v3.21/main" > /etc/apk/repositories; \
+    echo "https://dl-cdn.alpinelinux.org/alpine/v3.21/community" >> /etc/apk/repositories; \
+    apk update || \
+    (echo "https://mirrors.aliyun.com/alpine/v3.21/main" > /etc/apk/repositories && \
+     echo "https://mirrors.aliyun.com/alpine/v3.21/community" >> /etc/apk/repositories && \
+     apk update) || \
+    (echo "https://mirrors.tuna.tsinghua.edu.cn/alpine/v3.21/main" > /etc/apk/repositories && \
+     echo "https://mirrors.tuna.tsinghua.edu.cn/alpine/v3.21/community" >> /etc/apk/repositories && \
+     apk update) || true
+
+# 设置构建环境变量
+ARG GOPROXY_MIRRORS="https://proxy.golang.org|https://goproxy.cn,direct"
+ENV CGO_ENABLED=0 \
+    GOOS=linux \
+    GOARCH=amd64 \
+    GOPROXY=${GOPROXY_MIRRORS}
+
+# 先拉 go 依赖（利于缓存）
+COPY go.mod go.sum ./
+RUN go mod download
+
+# 拷贝后端源码 + 前端产物
 COPY . .
-
-# 创建输出目录；默认禁用 CGO 避免编译器缺失；按需改 GOOS/GOARCH
-# 使用多个代理源以提高成功率，设置超时和重试
-RUN --mount=type=cache,target=/go/pkg/mod \
-    --mount=type=cache,target=/root/.cache/go-build \
-    mkdir -p /out && \
-    GOPROXY=https://goproxy.cn,direct,https://proxy.golang.org,direct \
-    GOSUMDB=off \
-    CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-    go build -trimpath -ldflags "-s -w" -o /out/nebulagate .
-
-# 极小运行时镜像（也可用 scratch）
-FROM gcr.io/distroless/static-debian12 AS run
-COPY --from=build /out/nebulagate /nebulagate
-USER nonroot:nonroot
-ENTRYPOINT ["/nebulagate"]
