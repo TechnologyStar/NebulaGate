@@ -51,8 +51,8 @@ ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN (bun run build --verbose || bun run build || bun x vite build --logLevel info)
 
 # ==================== Stage 2: Go Builder（稳定版 Golang） ====================
-# go.mod 指定了 Go 1.22；如果基础镜像版本过低，`go mod download` 会直接报错
-FROM golang:1.22-alpine AS gobuilder
+# go.mod 指定了 Go 1.25.1；如果基础镜像版本过低，`go mod download` 会直接报错
+FROM golang:1.25-alpine AS gobuilder
 WORKDIR /build
 
 # 修复 alpine 镜像仓库（避免部分区域旧仓库失效）
