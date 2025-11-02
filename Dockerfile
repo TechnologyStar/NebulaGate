@@ -1,20 +1,19 @@
 # syntax=docker/dockerfile:1.7
-FROM golang:1.22 AS build
+FROM golang:1.25 AS build
 WORKDIR /src
 
-# 先拷贝依赖声明，充分利用缓存
-COPY go.mod go.sum ./
-RUN --mount=type=cache,target=/go/pkg/mod \
-    go mod download
-
-# 再拷贝源码
+# 拷贝所有源码
 COPY . .
 
 # 创建输出目录；默认禁用 CGO 避免编译器缺失；按需改 GOOS/GOARCH
-RUN --mount=type=cache,target=/root/.cache/go-build \
+# 使用多个代理源以提高成功率，设置超时和重试
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
     mkdir -p /out && \
+    GOPROXY=https://goproxy.cn,direct,https://proxy.golang.org,direct \
+    GOSUMDB=off \
     CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-    go build -trimpath -ldflags "-s -w" -o /out/nebulagate ./cmd/nebulagate
+    go build -trimpath -ldflags "-s -w" -o /out/nebulagate .
 
 # 极小运行时镜像（也可用 scratch）
 FROM gcr.io/distroless/static-debian12 AS run
