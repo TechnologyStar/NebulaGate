@@ -327,11 +327,11 @@ const EditTokenModal = (props) => {
             </Tag>
           ) : (
             <Tag color='green' shape='circle'>
-              {t('新建')}
+              {t('新建密钥')}
             </Tag>
           )}
           <Title heading={4} className='m-0'>
-            {isEdit ? t('更新令牌信息') : t('创建新的令牌')}
+            {isEdit ? t('更新令牌信息') : t('创建新的密钥')}
           </Title>
         </Space>
       }

@@ -132,7 +132,7 @@ const PageLayout = () => {
       <Header
         style={{
           padding: 0,
-          height: 'var(--nebula-header-height)',
+          height: 'var(--nebula-header-total-height)',
           lineHeight: 'normal',
           position: 'fixed',
           width: '100%',
@@ -150,7 +150,7 @@ const PageLayout = () => {
           overflow: isMobile ? 'visible' : 'auto',
           display: 'flex',
           flexDirection: 'column',
-          marginTop: 'var(--nebula-header-height)',
+          marginTop: 'var(--nebula-header-total-height)',
         }}
       >
         {showSider && !isMobile && (
@@ -158,11 +158,11 @@ const PageLayout = () => {
             style={{
               position: 'fixed',
               left: 0,
-              top: 'var(--nebula-header-height)',
+              top: 'var(--nebula-header-total-height)',
               zIndex: 99,
               border: 'none',
               paddingRight: '0',
-              height: 'calc(100vh - var(--nebula-header-height))',
+              height: 'calc(100vh - var(--nebula-header-total-height))',
               width: 'var(--sidebar-current-width)',
             }}
           >

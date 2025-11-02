@@ -1260,6 +1260,8 @@
     "添加": "Ajouter",
     "添加API": "Ajouter une API",
     "添加令牌": "Créer un jeton",
+    "新建密钥": "Créer une clé",
+    "创建新的密钥": "Créer une nouvelle clé",
     "添加兑换码": "Ajouter un code d'échange",
     "添加公告": "Ajouter un avis",
     "添加分类": "Ajouter une catégorie",
@@ -2128,6 +2130,23 @@
     "生成卡券成功": "Lot de coupons généré avec succès",
     "生成卡券失败": "Échec de la génération des coupons",
     "加载卡券批次失败": "Échec du chargement des lots de coupons",
-    "批次": "Lot"
+    "批次": "Lot",
+    "活跃连接": "Connexions actives",
+    "当前与网关交互的会话": "Sessions actives sur la passerelle",
+    "系统运行时间": "Temps de fonctionnement",
+    "自最近启动以来": "Depuis le dernier redémarrage",
+    "24小时请求量": "Requêtes sur 24 h",
+    "公开排行榜统计": "Basé sur le classement public",
+    "活跃模型数": "Modèles actifs",
+    "统计窗口内的模型覆盖": "Modèles observés sur la période",
+    "刷新中": "Mise à jour",
+    "实时数据暂不可用": "Données en direct indisponibles",
+    "正在刷新实时数据…": "Actualisation des données en direct…",
+    "更新于 {{time}}": "Mis à jour à {{time}}",
+    "统计窗口：{{window}}": "Fenêtre : {{window}}",
+    "当前版本 {{version}}": "Version actuelle {{version}}",
+    "已开放 API：{{count}}": "{{count}} points d'API publics",
+    "唯一调用令牌：{{count}}": "Jetons uniques : {{count}}",
+    "请求量": "Requêtes"
   }
 }

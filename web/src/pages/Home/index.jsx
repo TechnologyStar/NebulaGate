@@ -17,7 +17,13 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useContext, useEffect, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import {
   Button,
   Typography,
@@ -40,6 +46,7 @@ import {
 } from '@douyinfe/semi-icons';
 import { Link } from 'react-router-dom';
 import NoticeModal from '../../components/layout/NoticeModal';
+import { Activity, BarChart2, Clock3, Layers } from 'lucide-react';
 import {
   Moonshot,
   OpenAI,
@@ -80,6 +87,18 @@ const Home = () => {
   const endpointItems = API_ENDPOINTS.map((e) => ({ value: e }));
   const [endpointIndex, setEndpointIndex] = useState(0);
   const isChinese = i18n.language.startsWith('zh');
+  const [runtimeStats, setRuntimeStats] = useState({
+    activeConnections: 0,
+    uptimeSeconds: 0,
+    version: statusState?.status?.version || '',
+    apiInfoCount: Array.isArray(statusState?.status?.api_info)
+      ? statusState.status.api_info.length
+      : 0,
+  });
+  const [leaderboardData, setLeaderboardData] = useState([]);
+  const [liveStatsLoading, setLiveStatsLoading] = useState(false);
+  const [liveUpdatedAt, setLiveUpdatedAt] = useState(null);
+  const [liveError, setLiveError] = useState(null);
 
   const displayHomePageContent = async () => {
     setHomePageContent(localStorage.getItem('home_page_content') || '');
@@ -148,6 +167,153 @@ const Home = () => {
     return () => clearInterval(timer);
   }, [endpointItems.length]);
 
+  const defaultNumberFormatter = useMemo(
+    () =>
+      new Intl.NumberFormat(i18n.language, {
+        maximumFractionDigits: 0,
+      }),
+    [i18n.language],
+  );
+
+  const compactNumberFormatter = useMemo(
+    () =>
+      new Intl.NumberFormat(i18n.language, {
+        notation: 'compact',
+        maximumFractionDigits: 1,
+      }),
+    [i18n.language],
+  );
+
+  const formatNumber = useCallback(
+    (value) => {
+      if (typeof value !== 'number' || Number.isNaN(value)) {
+        return defaultNumberFormatter.format(0);
+      }
+      if (value < 1000) {
+        return defaultNumberFormatter.format(value);
+      }
+      return compactNumberFormatter.format(value);
+    },
+    [compactNumberFormatter, defaultNumberFormatter],
+  );
+
+  const formatUptime = useCallback((seconds) => {
+    if (!seconds || seconds < 0) return '—';
+    const days = Math.floor(seconds / 86400);
+    const hours = Math.floor((seconds % 86400) / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    if (days > 0) {
+      return `${days}d ${hours}h`;
+    }
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    }
+    if (minutes > 0) {
+      return `${minutes}m`;
+    }
+    return '<1m';
+  }, []);
+
+  const fetchLiveData = useCallback(async () => {
+    setLiveStatsLoading(true);
+    setLiveError(null);
+
+    try {
+      const statusRes = await API.get('/api/status', {
+        params: { _: Date.now() },
+        skipErrorHandler: true,
+      });
+      const { success, data, message } = statusRes?.data || {};
+      if (success && data) {
+        const runtime = data.runtime_stats || {};
+        setRuntimeStats({
+          activeConnections: runtime.active_connections ?? 0,
+          uptimeSeconds: runtime.uptime_seconds ?? 0,
+          version: data.version || '',
+          apiInfoCount: Array.isArray(data.api_info) ? data.api_info.length : 0,
+        });
+      } else if (message) {
+        setLiveError(message);
+      }
+    } catch (error) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        t('实时数据暂不可用');
+      setLiveError(message);
+    }
+
+    try {
+      const leaderboardRes = await API.get('/api/public/leaderboard', {
+        params: { window: '24h', limit: 6 },
+        skipErrorHandler: true,
+      });
+      const { success, data, message } = leaderboardRes?.data || {};
+      if (success && Array.isArray(data)) {
+        setLeaderboardData(data);
+      } else {
+        setLeaderboardData([]);
+        if (message) {
+          setLiveError((prev) => prev ?? message);
+        }
+      }
+    } catch (error) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        t('排行榜功能未启用');
+      setLeaderboardData([]);
+      setLiveError((prev) => prev ?? message);
+    } finally {
+      setLiveUpdatedAt(new Date());
+      setLiveStatsLoading(false);
+    }
+  }, [t]);
+
+  useEffect(() => {
+    fetchLiveData();
+    const interval = setInterval(fetchLiveData, 15000);
+    return () => clearInterval(interval);
+  }, [fetchLiveData]);
+
+  const statCards = useMemo(() => {
+    const totalRequests = leaderboardData.reduce(
+      (sum, entry) => sum + (entry.request_count || 0),
+      0,
+    );
+    const uniqueModels = leaderboardData.length;
+    return [
+      {
+        key: 'active',
+        title: t('活跃连接'),
+        value: formatNumber(runtimeStats.activeConnections || 0),
+        meta: t('当前与网关交互的会话'),
+        Icon: Activity,
+      },
+      {
+        key: 'uptime',
+        title: t('系统运行时间'),
+        value: formatUptime(runtimeStats.uptimeSeconds || 0),
+        meta: t('自最近启动以来'),
+        Icon: Clock3,
+      },
+      {
+        key: 'requests',
+        title: t('24小时请求量'),
+        value: formatNumber(totalRequests),
+        meta: t('公开排行榜统计'),
+        Icon: BarChart2,
+      },
+      {
+        key: 'models',
+        title: t('活跃模型数'),
+        value: formatNumber(uniqueModels),
+        meta: t('统计窗口内的模型覆盖'),
+        Icon: Layers,
+      },
+    ];
+  }, [formatNumber, formatUptime, leaderboardData, runtimeStats, t]);
+
   return (
     <div className='w-full overflow-x-hidden'>
       <NoticeModal
@@ -158,7 +324,7 @@ const Home = () => {
       {homePageContentLoaded && homePageContent === '' ? (
         <div className='w-full overflow-x-hidden'>
           {/* Hero Banner Section */}
-          <div className='w-full border-b border-semi-color-border min-h-[600px] md:min-h-[700px] lg:min-h-[800px] relative overflow-x-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-teal-50 dark:from-slate-900 dark:via-blue-950 dark:to-teal-950'>
+          <div className='home-hero-shell w-full border-b border-semi-color-border min-h-[600px] md:min-h-[700px] lg:min-h-[800px] relative overflow-x-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-teal-50 dark:from-slate-900 dark:via-blue-950 dark:to-teal-950'>
             {/* Background blur orbs */}
             <div className='blur-ball blur-ball-indigo' />
             <div className='blur-ball blur-ball-teal' />
@@ -176,9 +342,9 @@ const Home = () => {
                     </span>
                   </div>
 
-                  <h1
-                    className={`text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-teal-600 to-indigo-600 dark:from-blue-400 dark:via-teal-400 dark:to-indigo-400 leading-tight mb-6 ${isChinese ? 'tracking-wide md:tracking-wider' : ''}`}
-                  >
+                    <h1
+                      className={`home-hero-title text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-teal-600 to-indigo-600 dark:from-blue-400 dark:via-teal-400 dark:to-indigo-400 leading-tight mb-6 ${isChinese ? 'tracking-wide md:tracking-wider' : ''}`}
+                    >
                     {i18n.language === 'en' ? (
                       <>
                         The Unified
@@ -194,7 +360,7 @@ const Home = () => {
                     )}
                   </h1>
                   
-                  <p className='text-lg md:text-xl lg:text-2xl text-semi-color-text-1 dark:text-slate-300 mt-4 md:mt-6 max-w-2xl font-light leading-relaxed'>
+                  <p className='home-hero-subtitle text-lg md:text-xl lg:text-2xl text-semi-color-text-1 dark:text-slate-300 mt-4 md:mt-6 max-w-2xl font-light leading-relaxed'>
                     {t('企业级稳定性，透明化定价，一键接入多家AI模型')}
                   </p>
                   
@@ -272,6 +438,100 @@ const Home = () => {
                         {t('文档')}
                       </Button>
                     )
+                  )}
+                </div>
+
+                <div className='w-full max-w-5xl mx-auto'>
+                  <div className='home-live-stats'>
+                    {statCards.map((card) => {
+                      const IconComponent = card.Icon;
+                      return (
+                        <div key={card.key} className='home-live-card'>
+                          <div className='flex items-center justify-between mb-3'>
+                            <h3 className='flex items-center gap-2 uppercase tracking-[0.28em] text-[10px] text-slate-500 dark:text-slate-400'>
+                              <IconComponent size={16} />
+                              {card.title}
+                            </h3>
+                            {liveStatsLoading && (
+                              <span className='text-[10px] font-medium text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em]'>
+                                {t('刷新中')}
+                              </span>
+                            )}
+                          </div>
+                          <div className='home-live-card-value'>{card.value}</div>
+                          <div className='home-live-card-meta'>{card.meta}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className='mt-3 text-xs text-slate-500 dark:text-slate-400 flex flex-wrap items-center gap-3'>
+                    {(runtimeStats.version || statusState?.status?.version) && (
+                      <span>
+                        {t('当前版本 {{version}}', {
+                          version: runtimeStats.version || statusState?.status?.version,
+                        })}
+                      </span>
+                    )}
+                    {runtimeStats.apiInfoCount > 0 && (
+                      <span>{t('已开放 API：{{count}}', { count: runtimeStats.apiInfoCount })}</span>
+                    )}
+                    <span className='ml-auto'>
+                      {liveStatsLoading
+                        ? t('正在刷新实时数据…')
+                        : liveUpdatedAt
+                        ? t('更新于 {{time}}', {
+                            time: liveUpdatedAt.toLocaleTimeString(),
+                          })
+                        : liveError || ''}
+                    </span>
+                  </div>
+                  {liveError && (
+                    <div className='mt-3 text-sm text-amber-600 dark:text-amber-300'>
+                      {liveError}
+                    </div>
+                  )}
+                  {leaderboardData.length > 0 && (
+                    <div className='mt-8'>
+                      <div className='flex items-center justify-between mb-4'>
+                        <h3 className='text-lg font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2'>
+                          <BarChart2 size={18} />
+                          {t('模型请求排行榜')}
+                        </h3>
+                        <span className='text-xs text-slate-500 dark:text-slate-400'>
+                          {t('统计窗口：{{window}}', { window: t('24小时') })}
+                        </span>
+                      </div>
+                      <div className='grid gap-3 md:grid-cols-2'>
+                        {leaderboardData.slice(0, 4).map((item, index) => (
+                          <div
+                            key={`${item.model}-${index}`}
+                            className='flex items-center justify-between rounded-2xl border border-slate-200/60 dark:border-slate-700/60 bg-white/70 dark:bg-slate-800/70 px-5 py-4 backdrop-blur-lg shadow-sm hover:shadow-lg transition-all'
+                          >
+                            <div className='flex items-center gap-3'>
+                              <span className='text-sm font-semibold text-slate-400 dark:text-slate-500'>#{index + 1}</span>
+                              <div className='flex flex-col'>
+                                <span className='text-base font-semibold text-slate-800 dark:text-slate-100'>
+                                  {item.model}
+                                </span>
+                                <span className='text-xs text-slate-500 dark:text-slate-400'>
+                                  {t('唯一调用令牌：{{count}}', {
+                                    count: formatNumber(item.unique_tokens || 0),
+                                  })}
+                                </span>
+                              </div>
+                            </div>
+                            <div className='text-right'>
+                              <div className='text-lg font-bold text-slate-900 dark:text-slate-50'>
+                                {formatNumber(item.request_count || 0)}
+                              </div>
+                              <div className='text-xs text-slate-500 dark:text-slate-400'>
+                                {t('请求量')}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
                 </div>
 
