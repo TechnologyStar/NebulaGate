@@ -50,12 +50,20 @@ const Navigation = ({
       if (link.itemKey === 'console' && !userState.user) {
         targetPath = '/login';
       }
+      if (link.itemKey === 'leaderboard' && !userState.user) {
+        targetPath = '/login';
+      }
       if (link.itemKey === 'pricing' && pricingRequireAuth && !userState.user) {
         targetPath = '/login';
       }
 
+      const isLeaderboard = link.itemKey === 'leaderboard';
+      const linkClassName = isLeaderboard
+        ? 'nebula-header-nav-link nebula-header-nav-link--featured'
+        : 'nebula-header-nav-link';
+
       return (
-        <Link key={link.itemKey} to={targetPath} className='nebula-header-nav-link'>
+        <Link key={link.itemKey} to={targetPath} className={linkClassName}>
           {linkContent}
         </Link>
       );

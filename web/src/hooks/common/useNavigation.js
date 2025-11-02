@@ -25,13 +25,17 @@ export const useNavigation = (t, docsLink, headerNavModules) => {
     const defaultModules = {
       home: true,
       console: true,
+      leaderboard: true,
       pricing: true,
       docs: true,
       about: true,
     };
 
     // 使用传入的配置或默认配置
-    const modules = headerNavModules || defaultModules;
+    const modules = {
+      ...defaultModules,
+      ...(headerNavModules || {}),
+    };
 
     const allLinks = [
       {
@@ -43,6 +47,11 @@ export const useNavigation = (t, docsLink, headerNavModules) => {
         text: t('控制台'),
         itemKey: 'console',
         to: '/console',
+      },
+      {
+        text: t('使用排行榜'),
+        itemKey: 'leaderboard',
+        to: '/console/leaderboard',
       },
       {
         text: t('模型广场'),
@@ -76,6 +85,9 @@ export const useNavigation = (t, docsLink, headerNavModules) => {
         return typeof modules.pricing === 'object'
           ? modules.pricing.enabled
           : modules.pricing;
+      }
+      if (link.itemKey === 'leaderboard') {
+        return modules.leaderboard === true;
       }
       return modules[link.itemKey] === true;
     });

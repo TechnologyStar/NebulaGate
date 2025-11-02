@@ -126,22 +126,7 @@ const SiderBar = ({ onNavigate = () => {} }) => {
     isModuleVisible,
   ]);
 
-  const highlightItems = useMemo(() => {
-    const items = [
-      {
-        text: t('使用排行榜'),
-        itemKey: 'leaderboard',
-        to: '/leaderboard',
-      },
-    ];
-
-    const filteredItems = items.filter((item) => {
-      const configVisible = isModuleVisible('console', item.itemKey);
-      return configVisible;
-    });
-
-    return filteredItems;
-  }, [t, isModuleVisible]);
+  const highlightItems = useMemo(() => [], []);
 
   const financeItems = useMemo(() => {
     const items = [
@@ -423,12 +408,13 @@ const SiderBar = ({ onNavigate = () => {} }) => {
   };
 
   return (
-    <div
-      className='nebula-sidebar'
-      style={{
-        width: 'var(--sidebar-current-width)',
-      }}
-    >
+    <div className='nebula-sidebar-wrapper'>
+      <div
+        className='nebula-sidebar'
+        style={{
+          width: 'var(--sidebar-current-width)',
+        }}
+      >
       <SkeletonWrapper
         loading={showSkeleton}
         type='sidebar'
@@ -559,6 +545,7 @@ const SiderBar = ({ onNavigate = () => {} }) => {
             {!collapsed && <span>{t('收起侧边栏')}</span>}
           </button>
         </SkeletonWrapper>
+      </div>
       </div>
     </div>
   );

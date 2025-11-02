@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/constant"
@@ -45,6 +46,8 @@ func GetStatus(c *gin.Context) {
 
 	passkeySetting := system_setting.GetPasskeySettings()
 	legalSetting := system_setting.GetLegalSettings()
+
+	runtimeStats := middleware.GetStats()
 
 	data := gin.H{
 		"version":                     common.Version,
@@ -123,6 +126,11 @@ func GetStatus(c *gin.Context) {
 	}
 	if cs.FAQEnabled {
 		data["faq"] = console_setting.GetFAQ()
+	}
+
+	data["runtime_stats"] = gin.H{
+		"active_connections": runtimeStats.ActiveConnections,
+		"uptime_seconds":     time.Now().Unix() - common.StartTime,
 	}
 
 	c.JSON(http.StatusOK, gin.H{
