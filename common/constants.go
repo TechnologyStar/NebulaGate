@@ -190,6 +190,28 @@ const (
 )
 
 const (
+    PackageStatusActive   = 1
+    PackageStatusInactive = 2
+)
+
+const (
+    RedemptionCodeStatusUnused   = 1
+    RedemptionCodeStatusRedeemed = 2
+    RedemptionCodeStatusRevoked  = 3
+)
+
+const (
+    UserPackageStatusActive    = 1
+    UserPackageStatusExhausted = 2
+    UserPackageStatusExpired   = 3
+)
+
+const (
+    KeyPaymentTypeBalance = "balance"
+    KeyPaymentTypePackage = "package"
+)
+
+const (
     ChannelStatusUnknown          = 0
     ChannelStatusEnabled          = 1 // don't use 0, 0 is the default value!
     ChannelStatusManuallyDisabled = 2 // also don't use 0

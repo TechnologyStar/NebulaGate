@@ -91,6 +91,9 @@ func SetApiRouter(router *gin.Engine) {
                 selfRoute.POST("/stripe/amount", controller.RequestStripeAmount)
                 selfRoute.POST("/aff_transfer", controller.TransferAffQuota)
                 selfRoute.PUT("/setting", controller.UpdateUserSetting)
+                selfRoute.POST("/redeem", controller.RedeemPackageCode)
+                selfRoute.GET("/packages", controller.GetUserPackages)
+                selfRoute.GET("/packages/active", controller.GetActiveUserPackages)
 
                 // 2FA routes
                 selfRoute.GET("/2fa/status", controller.Get2FAStatus)
@@ -336,6 +339,26 @@ func SetApiRouter(router *gin.Engine) {
             modelsRoute.POST("/", controller.CreateModelMeta)
             modelsRoute.PUT("/", controller.UpdateModelMeta)
             modelsRoute.DELETE("/:id", controller.DeleteModelMeta)
+        }
+
+        packageRoute := apiRouter.Group("/admin/packages")
+        packageRoute.Use(middleware.AdminAuth())
+        {
+            packageRoute.GET("/", controller.GetAllPackages)
+            packageRoute.GET("/:id", controller.GetPackage)
+            packageRoute.POST("/", controller.CreatePackage)
+            packageRoute.PUT("/:id", controller.UpdatePackage)
+            packageRoute.DELETE("/:id", controller.DeletePackage)
+            packageRoute.GET("/:id/models", controller.GetPackageModels)
+        }
+
+        redemptionCodeRoute := apiRouter.Group("/admin/redemption-codes")
+        redemptionCodeRoute.Use(middleware.AdminAuth())
+        {
+            redemptionCodeRoute.POST("/", controller.GenerateRedemptionCodes)
+            redemptionCodeRoute.GET("/", controller.GetRedemptionCodes)
+            redemptionCodeRoute.PUT("/:id/revoke", controller.RevokeRedemptionCode)
+            redemptionCodeRoute.GET("/export", controller.ExportRedemptionCodes)
         }
     }
 }
