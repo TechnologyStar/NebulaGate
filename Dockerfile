@@ -68,11 +68,8 @@ RUN set -eux; \
      apk update) || true
 
 # 设置构建环境变量
-ARG GOPROXY_MIRRORS="https://proxy.golang.org|https://goproxy.cn,direct"
-ENV CGO_ENABLED=0 \
-    GOOS=linux \
-    GOARCH=amd64 \
-    GOPROXY=${GOPROXY_MIRRORS}
+ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64
+ENV GOPROXY=https://goproxy.cn,direct
 
 # 先拉 go 依赖（利于缓存）
 COPY go.mod go.sum ./
