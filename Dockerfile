@@ -1,10 +1,11 @@
+# syntax=docker/dockerfile:1.7
 
 # ==================== Stage 1: Web (Bun + Vite) ====================
 FROM oven/bun:1.1.29-alpine AS webbuilder
 WORKDIR /app/web
 ENV BUN_ENABLE_TELEMETRY=0
 
-# 一些老的 alpine 镜像默认仓库会过期，先把仓库指向稳定版本并更新索引
+# 一些老的 alpine 镜像默认仓库会过期,先把仓库指向稳定版本并更新索引
 RUN set -eux; \
     echo "https://dl-cdn.alpinelinux.org/alpine/v3.18/main" > /etc/apk/repositories; \
     echo "https://dl-cdn.alpinelinux.org/alpine/v3.18/community" >> /etc/apk/repositories; \
@@ -80,45 +81,3 @@ RUN go mod download
 
 # 拷贝后端源码 + 前端产物
 COPY . .
-COPY --from=webbuilder /app/web/dist ./web/dist
-
-# 构建二进制（如果 main 不在仓库根目录，把 "." 改成你的主程序路径）
-RUN go build -trimpath -ldflags "-s -w" -o /out/nebulagate .
-
-# ==================== Stage 3: Runtime ====================
-FROM alpine:3.20
-WORKDIR /app
-ENV TZ=America/Chicago
-
-# 修复 alpine 镜像仓库并安装必要包
-RUN set -eux; \
-    echo "https://dl-cdn.alpinelinux.org/alpine/v3.20/main" > /etc/apk/repositories; \
-    echo "https://dl-cdn.alpinelinux.org/alpine/v3.20/community" >> /etc/apk/repositories; \
-    apk update || \
-    (echo "https://mirrors.aliyun.com/alpine/v3.20/main" > /etc/apk/repositories && \
-     echo "https://mirrors.aliyun.com/alpine/v3.20/community" >> /etc/apk/repositories && \
-     apk update) || \
-    (echo "https://mirrors.tuna.tsinghua.edu.cn/alpine/v3.20/main" > /etc/apk/repositories && \
-     echo "https://mirrors.tuna.tsinghua.edu.cn/alpine/v3.20/community" >> /etc/apk/repositories && \
-     apk update) || true; \
-    apk add --no-cache ca-certificates tzdata || \
-    apk add --no-cache --repository=https://dl-cdn.alpinelinux.org/alpine/v3.20/main \
-        --repository=https://dl-cdn.alpinelinux.org/alpine/v3.20/community \
-        ca-certificates tzdata || \
-    apk add --no-cache --repository=https://mirrors.aliyun.com/alpine/v3.20/main \
-        --repository=https://mirrors.aliyun.com/alpine/v3.20/community \
-        ca-certificates tzdata || \
-    apk add --no-cache --repository=https://mirrors.tuna.tsinghua.edu.cn/alpine/v3.20/main \
-        --repository=https://mirrors.tuna.tsinghua.edu.cn/alpine/v3.20/community \
-        ca-certificates tzdata
-
-RUN update-ca-certificates || true
-
-# 拷贝二进制与前端静态资源
-COPY --from=gobuilder  /out/nebulagate /app/nebulagate
-COPY --from=webbuilder /app/web/dist  /app/public
-
-# 数据工作目录（挂卷）
-WORKDIR /data
-EXPOSE 3000
-ENTRYPOINT ["/app/nebulagate"]
