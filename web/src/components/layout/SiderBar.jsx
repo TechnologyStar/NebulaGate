@@ -53,6 +53,7 @@ const routerMap = {
   checkin: '/console/checkin',
   lottery: '/console/lottery',
   audit: '/console/audit',
+  security: '/console/security',
 };
 
 const SiderBar = ({ onNavigate = () => {} }) => {
@@ -196,6 +197,12 @@ const SiderBar = ({ onNavigate = () => {} }) => {
         text: t('审计日志'),
         itemKey: 'audit',
         to: '/audit',
+        className: isAdmin() ? '' : 'tableHiddle',
+      },
+      {
+        text: t('安全中心'),
+        itemKey: 'security',
+        to: '/security',
         className: isAdmin() ? '' : 'tableHiddle',
       },
       {

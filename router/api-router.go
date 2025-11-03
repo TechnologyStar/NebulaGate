@@ -360,5 +360,20 @@ func SetApiRouter(router *gin.Engine) {
             redemptionCodeRoute.PUT("/:id/revoke", controller.RevokeRedemptionCode)
             redemptionCodeRoute.GET("/export", controller.ExportRedemptionCodes)
         }
+
+        securityRoute := apiRouter.Group("/security")
+        securityRoute.Use(middleware.AdminAuth())
+        {
+            securityRoute.GET("/dashboard", controller.GetSecurityDashboard)
+            securityRoute.GET("/violations", controller.GetSecurityViolations)
+            securityRoute.DELETE("/violations/:id", controller.DeleteSecurityViolation)
+            securityRoute.GET("/users", controller.GetSecurityUsers)
+            securityRoute.POST("/users/:userId/ban", controller.BanUser)
+            securityRoute.POST("/users/:userId/unban", controller.UnbanUser)
+            securityRoute.POST("/users/:userId/redirect", controller.SetUserRedirect)
+            securityRoute.DELETE("/users/:userId/redirect", controller.ClearUserRedirect)
+            securityRoute.GET("/settings", controller.GetSecuritySettings)
+            securityRoute.PUT("/settings", controller.UpdateSecuritySettings)
+        }
     }
 }

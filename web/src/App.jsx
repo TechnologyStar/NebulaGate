@@ -55,6 +55,7 @@ import Audit from './pages/Audit';
 import PackagePage from './pages/Package';
 import RedemptionCodePage from './pages/RedemptionCode';
 import UserPackagePage from './pages/UserPackage';
+import SecurityCenter from './pages/Security';
 
 const Home = lazy(() => import('./pages/Home'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -147,6 +148,14 @@ function App() {
           element={
             <AdminRoute>
               <Audit />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path='/console/security'
+          element={
+            <AdminRoute>
+              <SecurityCenter />
             </AdminRoute>
           }
         />

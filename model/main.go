@@ -286,6 +286,8 @@ func migrateDB() error {
         &CheckInRecord{},
         &LotteryConfig{},
         &LotteryRecord{},
+        &SecurityViolation{},
+        &UserSecurity{},
         )
     if err != nil {
         return err
@@ -332,6 +334,8 @@ func migrateDBFast() error {
         {&CheckInRecord{}, "CheckInRecord"},
         {&LotteryConfig{}, "LotteryConfig"},
         {&LotteryRecord{}, "LotteryRecord"},
+        {&SecurityViolation{}, "SecurityViolation"},
+        {&UserSecurity{}, "UserSecurity"},
     }
     // 动态计算migration数量，确保errChan缓冲区足够大
     errChan := make(chan error, len(migrations))

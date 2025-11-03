@@ -12,6 +12,7 @@ const (
     ContextKeyGovernanceUpstreamModel ContextKey = "governance_upstream_model"
     ContextKeyGovernanceMetadata     ContextKey = "governance_metadata"
     ContextKeySkipLeaderboard        ContextKey = "skip_leaderboard"
+    ContextKeySecurityRedirectModel  ContextKey = "security_redirect_model"
 
     /* token related keys */
     ContextKeyTokenUnlimited         ContextKey = "token_unlimited_quota"
