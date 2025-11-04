@@ -94,6 +94,22 @@ func main() {
     // 数据看板
     go model.UpdateQuotaData()
 
+    // Start group rate scheduler
+    go service.StartGroupRateScheduler()
+
+    // Cleanup expired IP bans and lists periodically
+    go func() {
+        ticker := time.NewTicker(1 * time.Hour)
+        defer ticker.Stop()
+        for range ticker.C {
+            if !common.IsMasterNode {
+                continue
+            }
+            _ = model.CleanupExpiredBans()
+            _ = model.CleanupExpiredIPLists()
+        }
+    }()
+
     go func() {
         ticker := time.NewTicker(1 * time.Hour)
         defer ticker.Stop()
