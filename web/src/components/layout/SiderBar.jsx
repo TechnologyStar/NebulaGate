@@ -54,6 +54,7 @@ const routerMap = {
   lottery: '/console/lottery',
   audit: '/console/audit',
   security: '/console/security',
+  ticket: '/ticket',
 };
 
 const SiderBar = ({ onNavigate = () => {} }) => {
@@ -150,6 +151,11 @@ const SiderBar = ({ onNavigate = () => {} }) => {
         text: t('兑换卡券'),
         itemKey: 'voucher',
         to: '/voucher',
+      },
+      {
+        text: t('工单系统'),
+        itemKey: 'ticket',
+        to: '/ticket',
       },
       {
         text: t('个人设置'),

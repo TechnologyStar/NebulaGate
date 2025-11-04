@@ -375,5 +375,22 @@ func SetApiRouter(router *gin.Engine) {
             securityRoute.GET("/settings", controller.GetSecuritySettings)
             securityRoute.PUT("/settings", controller.UpdateSecuritySettings)
         }
+
+        ticketRoute := apiRouter.Group("/ticket")
+        ticketRoute.Use(middleware.UserAuth())
+        {
+            ticketRoute.POST("/create", controller.CreateTicket)
+            ticketRoute.GET("/list", controller.GetTicketList)
+            ticketRoute.GET("/:id", controller.GetTicketDetail)
+            ticketRoute.PUT("/:id/status", controller.UpdateTicketStatus)
+            ticketRoute.DELETE("/:id", controller.DeleteTicket)
+
+            // Admin-only routes
+            ticketAdminRoute := ticketRoute.Group("/")
+            ticketAdminRoute.Use(middleware.AdminAuth())
+            {
+                ticketAdminRoute.PUT("/:id/reply", controller.ReplyTicket)
+            }
+        }
     }
 }
