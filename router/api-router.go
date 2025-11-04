@@ -106,6 +106,7 @@ func SetApiRouter(router *gin.Engine) {
                 selfRoute.POST("/checkin", controller.CheckIn)
                 selfRoute.GET("/checkin/status", controller.GetCheckInStatus)
                 selfRoute.GET("/checkin/history", controller.GetCheckInHistory)
+                selfRoute.GET("/checkin/rewards", controller.GetCheckInRewardConfig)
 
                 // Lottery routes
                 selfRoute.POST("/lottery/draw", controller.DrawLottery)
@@ -241,6 +242,12 @@ func SetApiRouter(router *gin.Engine) {
         {
             logAdmin.GET("/ip-usage/token/:id", controller.GetTokenIPUsage)
             logAdmin.GET("/ip-usage/user/:id", controller.GetUserIPUsage)
+        }
+
+        playgroundAdmin := apiRouter.Group("/playground")
+        playgroundAdmin.Use(middleware.AdminAuth())
+        {
+            playgroundAdmin.GET("/ip-stats", controller.GetPlaygroundIPStats)
         }
 
         lotteryRoute := apiRouter.Group("/lottery")
@@ -391,6 +398,44 @@ func SetApiRouter(router *gin.Engine) {
             {
                 ticketAdminRoute.PUT("/:id/reply", controller.ReplyTicket)
             }
+        }
+
+        // Group rate schedule routes
+        groupRateRoute := apiRouter.Group("/admin/group-rate-schedule")
+        groupRateRoute.Use(middleware.AdminAuth())
+        {
+            groupRateRoute.GET("/", controller.GetAllGroupRateSchedules)
+            groupRateRoute.GET("/group", controller.GetGroupRateSchedules)
+            groupRateRoute.GET("/current", controller.GetCurrentGroupRate)
+            groupRateRoute.POST("/", controller.CreateGroupRateSchedule)
+            groupRateRoute.PUT("/", controller.UpdateGroupRateSchedule)
+            groupRateRoute.DELETE("/:id", controller.DeleteGroupRateSchedule)
+            groupRateRoute.POST("/update", controller.ForceUpdateGroupRates)
+        }
+
+        // IP protection routes
+        ipProtectionRoute := apiRouter.Group("/admin/ip-protection")
+        ipProtectionRoute.Use(middleware.AdminAuth())
+        {
+            // Blacklist & Whitelist
+            ipProtectionRoute.POST("/blacklist", controller.AddIPToBlacklist)
+            ipProtectionRoute.POST("/whitelist", controller.AddIPToWhitelist)
+            ipProtectionRoute.DELETE("/list/:id", controller.RemoveIPFromList)
+            ipProtectionRoute.GET("/list", controller.GetIPLists)
+
+            // Rate limits
+            ipProtectionRoute.POST("/rate-limit", controller.CreateIPRateLimit)
+            ipProtectionRoute.PUT("/rate-limit", controller.UpdateIPRateLimit)
+            ipProtectionRoute.DELETE("/rate-limit/:id", controller.DeleteIPRateLimit)
+            ipProtectionRoute.GET("/rate-limit", controller.GetIPRateLimits)
+
+            // Bans
+            ipProtectionRoute.POST("/ban", controller.BanIPAddress)
+            ipProtectionRoute.POST("/unban", controller.UnbanIPAddress)
+            ipProtectionRoute.GET("/banned", controller.GetIPBans)
+
+            // Statistics
+            ipProtectionRoute.GET("/stats", controller.GetIPProtectionStats)
         }
     }
 }
