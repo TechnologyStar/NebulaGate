@@ -56,6 +56,9 @@ import PackagePage from './pages/Package';
 import RedemptionCodePage from './pages/RedemptionCode';
 import UserPackagePage from './pages/UserPackage';
 import SecurityCenter from './pages/Security';
+import Ticket from './pages/Ticket';
+import TicketCreate from './pages/Ticket/TicketCreate';
+import TicketDetail from './pages/Ticket/TicketDetail';
 
 const Home = lazy(() => import('./pages/Home'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -440,6 +443,30 @@ function App() {
               <Suspense fallback={<Loading></Loading>} key={location.pathname}>
                 <Chat2Link />
               </Suspense>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path='/ticket'
+          element={
+            <PrivateRoute>
+              <Ticket />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path='/ticket/create'
+          element={
+            <PrivateRoute>
+              <TicketCreate />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path='/ticket/:id'
+          element={
+            <PrivateRoute>
+              <TicketDetail />
             </PrivateRoute>
           }
         />

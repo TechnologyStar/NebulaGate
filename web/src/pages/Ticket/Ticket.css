@@ -1,0 +1,100 @@
+.ticket-container {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.ticket-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.ticket-header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.ticket-content-section {
+  margin-bottom: 20px;
+}
+
+.ticket-content-section h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: var(--semi-color-text-0);
+}
+
+.ticket-content-box {
+  padding: 16px;
+  background: var(--semi-color-fill-0);
+  border-radius: 8px;
+  border: 1px solid var(--semi-color-border);
+  color: var(--semi-color-text-1);
+  line-height: 1.6;
+}
+
+.ticket-reply-section {
+  background: var(--semi-color-success-light-default);
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.ticket-reply-section .ticket-content-box {
+  background: white;
+}
+
+.ticket-reply-form {
+  margin-top: 20px;
+}
+
+/* Status Tag Colors */
+.semi-tag-amber {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.semi-tag-blue {
+  background-color: #dbeafe;
+  color: #1e3a8a;
+}
+
+.semi-tag-green {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.semi-tag-grey {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.semi-tag-red {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.semi-tag-orange {
+  background-color: #ffedd5;
+  color: #9a3412;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .ticket-container {
+    padding: 10px;
+  }
+
+  .ticket-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .ticket-header h2 {
+    font-size: 20px;
+  }
+}
