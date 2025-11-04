@@ -223,3 +223,10 @@ const (
     TopUpStatusSuccess = "success"
     TopUpStatusExpired = "expired"
 )
+
+const (
+    // Security Center Options
+    OptionViolationRedirectModel = "ViolationRedirectModel"
+    OptionAutobanEnabled         = "AutobanEnabled"
+    OptionAutobanThreshold       = "AutobanThreshold"
+)

@@ -353,4 +353,100 @@ func persistRequestFlag(c *gin.Context, config *cfg.GovernanceConfig, subjectTyp
     if err := model.CreateRequestFlag(flag); err != nil {
         logger.LogError(c, fmt.Sprintf("failed to persist governance flag: %v", err))
     }
+
+    // Record security violation
+    recordSecurityViolation(c, userID, tokenID, decision, alias)
+}
+
+func recordSecurityViolation(c *gin.Context, userID, tokenID int, decision *governanceDecision, alias string) {
+    if userID == 0 {
+        return
+    }
+
+    // Extract content snippet from context
+    prompt := extractPromptText(c)
+    
+    // Get matched keywords from decision
+    var keywords []string
+    if keywordDetector, ok := decision.detectors["keyword_policy"]; ok {
+        if kw, exists := keywordDetector["matched_keywords"]; exists {
+            keywords = append(keywords, kw)
+        }
+    }
+
+    // Get request model
+    requestedModel := common.GetContextKeyString(c, constant.ContextKeyRequestedModel)
+    if requestedModel == "" {
+        requestedModel = common.GetContextKeyString(c, constant.ContextKeyOriginalModel)
+    }
+
+    // Get IP address
+    ipAddress := common.GetClientIP(c)
+
+    // Determine action taken
+    action := "log"
+    if alias != "" {
+        action = "redirect"
+    }
+
+    requestID := c.GetString(common.RequestIdKey)
+
+    // Import service package at the top of file and use it
+    var tokenIDPtr *int
+    if tokenID > 0 {
+        tokenIDPtr = &tokenID
+    }
+
+    // Call service to record violation (async to avoid blocking request)
+    go func() {
+        // Use a new service import to avoid circular dependency
+        if err := recordViolationAsync(userID, tokenIDPtr, prompt, keywords, requestedModel, ipAddress, requestID, decision.severity, action); err != nil {
+            // Log error but don't fail the request
+            common.SysLog(fmt.Sprintf("failed to record security violation: %v", err))
+        }
+    }()
+}
+
+func recordViolationAsync(userID int, tokenID *int, content string, keywords []string, model, ipAddress, requestID, severity, action string) error {
+    // Import the service package at function level to avoid init-time circular dependency
+    // We'll call the model layer directly here
+    snippet := content
+    if len(snippet) > 500 {
+        snippet = snippet[:500] + "..."
+    }
+
+    violation := &model.SecurityViolation{
+        UserId:          userID,
+        TokenId:         tokenID,
+        ViolatedAt:      time.Now(),
+        ContentSnippet:  snippet,
+        MatchedKeywords: joinStrings(keywords, ", "),
+        Model:           model,
+        IpAddress:       ipAddress,
+        RequestId:       requestID,
+        Severity:        severity,
+        ActionTaken:     action,
+    }
+
+    if err := model.CreateSecurityViolation(violation); err != nil {
+        return err
+    }
+
+    // Increment user violation count
+    if err := model.IncrementViolationCount(userID); err != nil {
+        return err
+    }
+
+    return nil
+}
+
+func joinStrings(strs []string, sep string) string {
+    if len(strs) == 0 {
+        return ""
+    }
+    result := strs[0]
+    for i := 1; i < len(strs); i++ {
+        result += sep + strs[i]
+    }
+    return result
 }
