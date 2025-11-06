@@ -277,6 +277,9 @@ func InitResources() error {
         return err
     }
 
+    // Initialize Heimdall authentication configuration
+    middleware.InitHeimdallConfig()
+
     // Bootstrap background scheduler after DB and options are ready
     // Jobs respect feature flags to avoid overhead when disabled
     _ = bootstrapScheduler()
