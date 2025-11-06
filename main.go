@@ -94,6 +94,14 @@ func main() {
     // 数据看板
     go model.UpdateQuotaData()
 
+    // Start anomaly detection engine if enabled
+    if os.Getenv("ANOMALY_DETECTION_ENABLED") == "true" || model.GetOptionValue("anomaly_detection_enabled") == "true" {
+        anomalyEngine := service.InitAnomalyEngine()
+        if anomalyEngine != nil {
+            common.SysLog("anomaly detection engine started")
+        }
+    }
+
     go func() {
         ticker := time.NewTicker(1 * time.Hour)
         defer ticker.Stop()
