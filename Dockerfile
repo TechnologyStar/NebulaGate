@@ -81,3 +81,29 @@ RUN go mod download
 
 # 拷贝后端源码 + 前端产物
 COPY . .
+
+# 构建主应用
+RUN go build -ldflags="-s -w" -o new-api main.go
+
+# 构建 Heimdall 网关
+RUN go build -ldflags="-s -w" -o heimdall ./cmd/heimdall
+
+# ==================== Stage 3: Runtime Image ====================
+FROM alpine:latest
+RUN apk --no-cache add ca-certificates tzdata
+WORKDIR /root/
+
+# 复制构建产物
+COPY --from=gobuilder /build/new-api .
+COPY --from=gobuilder /build/heimdall .
+COPY --from=webbuilder /app/web/dist ./web/dist
+
+# 暴露端口
+EXPOSE 3000 8443 80
+
+# 健康检查
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/status || exit 1
+
+# 默认启动主应用
+CMD ["./new-api"]
