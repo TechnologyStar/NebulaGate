@@ -376,6 +376,28 @@ func SetApiRouter(router *gin.Engine) {
             securityRoute.PUT("/settings", controller.UpdateSecuritySettings)
         }
 
+        anomalyRoute := apiRouter.Group("/anomalies")
+        {
+            // User routes
+            userAnomalyRoute := anomalyRoute.Group("/")
+            userAnomalyRoute.Use(middleware.UserAuth())
+            {
+                userAnomalyRoute.GET("/", controller.GetAnomalies)
+                userAnomalyRoute.GET("/statistics", controller.GetAnomalyStatistics)
+                userAnomalyRoute.POST("/:id/resolve", controller.ResolveAnomaly)
+            }
+
+            // Admin routes
+            adminAnomalyRoute := anomalyRoute.Group("/admin")
+            adminAnomalyRoute.Use(middleware.AdminAuth())
+            {
+                adminAnomalyRoute.GET("/", controller.AdminGetAllAnomalies)
+                adminAnomalyRoute.GET("/settings", controller.AdminGetAnomalySettings)
+                adminAnomalyRoute.PUT("/settings", controller.AdminUpdateAnomalySettings)
+                adminAnomalyRoute.POST("/users/:user_id/process", controller.AdminProcessUserAnomalies)
+            }
+        }
+
         ticketRoute := apiRouter.Group("/ticket")
         ticketRoute.Use(middleware.UserAuth())
         {

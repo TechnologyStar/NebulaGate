@@ -142,6 +142,16 @@ func InitOptionMap() {
     common.OptionMap["ExposeRatioEnabled"] = strconv.FormatBool(ratio_setting.IsExposeRatioEnabled())
     common.OptionMap["MaxTicketsPerUserPerDay"] = "5" // Default: 5 tickets per user per day
 
+    // Anomaly detection configuration
+    common.OptionMap["anomaly_quota_spike_percent"] = "150"
+    common.OptionMap["anomaly_login_ratio_threshold"] = "1000"
+    common.OptionMap["anomaly_request_ratio_threshold"] = "500"
+    common.OptionMap["anomaly_new_device_requests"] = "100"
+    common.OptionMap["anomaly_ip_change_threshold"] = "5"
+    common.OptionMap["anomaly_detection_enabled"] = "false"
+    common.OptionMap["anomaly_detection_interval_seconds"] = "3600"
+    common.OptionMap["anomaly_detection_window_hours"] = "24"
+
     // 自动添加所有注册的模型配置
     modelConfigs := config.GlobalConfig.ExportAllConfigs()
     for k, v := range modelConfigs {
