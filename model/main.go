@@ -289,6 +289,7 @@ func migrateDB() error {
         &SecurityViolation{},
         &UserSecurity{},
         &Ticket{},
+        &HeimdallRequestLog{},
         )
     if err != nil {
         return err
@@ -338,6 +339,7 @@ func migrateDBFast() error {
         {&SecurityViolation{}, "SecurityViolation"},
         {&UserSecurity{}, "UserSecurity"},
         {&Ticket{}, "Ticket"},
+        {&HeimdallRequestLog{}, "HeimdallRequestLog"},
     }
     // 动态计算migration数量，确保errChan缓冲区足够大
     errChan := make(chan error, len(migrations))
@@ -368,7 +370,7 @@ func migrateDBFast() error {
 
 func migrateLOGDB() error {
     var err error
-    if err = LOG_DB.AutoMigrate(&Log{}, &TokenIPUsage{}, &UserIPUsage{}); err != nil {
+    if err = LOG_DB.AutoMigrate(&Log{}, &TokenIPUsage{}, &UserIPUsage{}, &HeimdallRequestLog{}); err != nil {
         return err
     }
     return nil
