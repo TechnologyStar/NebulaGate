@@ -226,7 +226,9 @@ const (
 
 const (
     // Security Center Options
-    OptionViolationRedirectModel = "ViolationRedirectModel"
-    OptionAutobanEnabled         = "AutobanEnabled"
-    OptionAutobanThreshold       = "AutobanThreshold"
+    OptionViolationRedirectModel  = "ViolationRedirectModel"
+    OptionAutobanEnabled          = "AutobanEnabled"
+    OptionAutobanThreshold        = "AutobanThreshold"
+    OptionAutoEnforcementEnabled  = "AutoEnforcementEnabled"
+    OptionAutoBlockEnabled        = "AutoBlockEnabled"
 )

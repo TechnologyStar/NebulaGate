@@ -62,6 +62,7 @@ func SetRelayRouter(router *gin.Engine) {
     }
     relayV1Router := router.Group("/v1")
     relayV1Router.Use(middleware.TokenAuth())
+    relayV1Router.Use(middleware.Heimdall())
     relayV1Router.Use(middleware.ModelRequestRateLimit())
     {
         // WebSocket 路由（统一到 Relay）

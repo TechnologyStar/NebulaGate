@@ -374,6 +374,11 @@ func SetApiRouter(router *gin.Engine) {
             securityRoute.DELETE("/users/:userId/redirect", controller.ClearUserRedirect)
             securityRoute.GET("/settings", controller.GetSecuritySettings)
             securityRoute.PUT("/settings", controller.UpdateSecuritySettings)
+            securityRoute.GET("/devices", controller.GetDeviceClusters)
+            securityRoute.GET("/ip-clusters", controller.GetIPClusters)
+            securityRoute.GET("/anomalies", controller.GetSecurityAnomalies)
+            securityRoute.POST("/anomalies/:id/approve", controller.ApproveAnomaly)
+            securityRoute.POST("/anomalies/:id/ignore", controller.IgnoreAnomaly)
         }
 
         ticketRoute := apiRouter.Group("/ticket")
