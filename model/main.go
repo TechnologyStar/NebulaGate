@@ -288,6 +288,9 @@ func migrateDB() error {
         &LotteryRecord{},
         &SecurityViolation{},
         &UserSecurity{},
+        &DeviceFingerprint{},
+        &IPCluster{},
+        &SecurityAnomaly{},
         &Ticket{},
         )
     if err != nil {
@@ -337,6 +340,9 @@ func migrateDBFast() error {
         {&LotteryRecord{}, "LotteryRecord"},
         {&SecurityViolation{}, "SecurityViolation"},
         {&UserSecurity{}, "UserSecurity"},
+        {&DeviceFingerprint{}, "DeviceFingerprint"},
+        {&IPCluster{}, "IPCluster"},
+        {&SecurityAnomaly{}, "SecurityAnomaly"},
         {&Ticket{}, "Ticket"},
     }
     // 动态计算migration数量，确保errChan缓冲区足够大

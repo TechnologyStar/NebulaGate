@@ -1,333 +1,544 @@
 package controller
 
 import (
-	"net/http"
-	"strconv"
-	"time"
+    "net/http"
+    "strconv"
+    "time"
 
-	"github.com/QuantumNous/new-api/model"
-	"github.com/QuantumNous/new-api/service"
-	"github.com/gin-gonic/gin"
+    "github.com/QuantumNous/new-api/model"
+    "github.com/QuantumNous/new-api/service"
+    "github.com/gin-gonic/gin"
 )
 
 // GetSecurityDashboard returns security dashboard statistics
 func GetSecurityDashboard(c *gin.Context) {
-	// Parse time range from query params
-	startTimeStr := c.Query("start_time")
-	endTimeStr := c.Query("end_time")
+    // Parse time range from query params
+    startTimeStr := c.Query("start_time")
+    endTimeStr := c.Query("end_time")
 
-	var startTime, endTime time.Time
-	var err error
+    var startTime, endTime time.Time
+    var err error
 
-	if startTimeStr != "" {
-		startTime, err = time.Parse(time.RFC3339, startTimeStr)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"success": false,
-				"message": "Invalid start_time format",
-			})
-			return
-		}
-	} else {
-		// Default to last 7 days
-		startTime = time.Now().AddDate(0, 0, -7)
-	}
+    if startTimeStr != "" {
+        startTime, err = time.Parse(time.RFC3339, startTimeStr)
+        if err != nil {
+            c.JSON(http.StatusBadRequest, gin.H{
+                "success": false,
+                "message": "Invalid start_time format",
+            })
+            return
+        }
+    } else {
+        // Default to last 7 days
+        startTime = time.Now().AddDate(0, 0, -7)
+    }
 
-	if endTimeStr != "" {
-		endTime, err = time.Parse(time.RFC3339, endTimeStr)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"success": false,
-				"message": "Invalid end_time format",
-			})
-			return
-		}
-	} else {
-		endTime = time.Now()
-	}
+    if endTimeStr != "" {
+        endTime, err = time.Parse(time.RFC3339, endTimeStr)
+        if err != nil {
+            c.JSON(http.StatusBadRequest, gin.H{
+                "success": false,
+                "message": "Invalid end_time format",
+            })
+            return
+        }
+    } else {
+        endTime = time.Now()
+    }
 
-	stats, err := service.GetDashboardStats(startTime, endTime)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"message": err.Error(),
-		})
-		return
-	}
+    stats, err := service.GetDashboardStats(startTime, endTime)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{
+            "success": false,
+            "message": err.Error(),
+        })
+        return
+    }
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"data":    stats,
-	})
+    c.JSON(http.StatusOK, gin.H{
+        "success": true,
+        "data":    stats,
+    })
 }
 
 // GetSecurityViolations returns paginated violation records
 func GetSecurityViolations(c *gin.Context) {
-	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
-	userId, _ := strconv.Atoi(c.Query("user_id"))
-	keyword := c.Query("keyword")
-	startTimeStr := c.Query("start_time")
-	endTimeStr := c.Query("end_time")
+    page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+    pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
+    userId, _ := strconv.Atoi(c.Query("user_id"))
+    keyword := c.Query("keyword")
+    startTimeStr := c.Query("start_time")
+    endTimeStr := c.Query("end_time")
 
-	offset := (page - 1) * pageSize
+    offset := (page - 1) * pageSize
 
-	var startTime, endTime *time.Time
-	if startTimeStr != "" {
-		t, err := time.Parse(time.RFC3339, startTimeStr)
-		if err == nil {
-			startTime = &t
-		}
-	}
-	if endTimeStr != "" {
-		t, err := time.Parse(time.RFC3339, endTimeStr)
-		if err == nil {
-			endTime = &t
-		}
-	}
+    var startTime, endTime *time.Time
+    if startTimeStr != "" {
+        t, err := time.Parse(time.RFC3339, startTimeStr)
+        if err == nil {
+            startTime = &t
+        }
+    }
+    if endTimeStr != "" {
+        t, err := time.Parse(time.RFC3339, endTimeStr)
+        if err == nil {
+            endTime = &t
+        }
+    }
 
-	violations, total, err := model.GetSecurityViolations(offset, pageSize, userId, startTime, endTime, keyword)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"message": err.Error(),
-		})
-		return
-	}
+    violations, total, err := model.GetSecurityViolations(offset, pageSize, userId, startTime, endTime, keyword)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{
+            "success": false,
+            "message": err.Error(),
+        })
+        return
+    }
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"data": gin.H{
-			"violations": violations,
-			"total":      total,
-			"page":       page,
-			"page_size":  pageSize,
-		},
-	})
+    c.JSON(http.StatusOK, gin.H{
+        "success": true,
+        "data": gin.H{
+            "violations": violations,
+            "total":      total,
+            "page":       page,
+            "page_size":  pageSize,
+        },
+    })
 }
 
 // DeleteSecurityViolation deletes a violation record
 func DeleteSecurityViolation(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "Invalid violation ID",
-		})
-		return
-	}
+    id, err := strconv.Atoi(c.Param("id"))
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{
+            "success": false,
+            "message": "Invalid violation ID",
+        })
+        return
+    }
 
-	err = model.DeleteSecurityViolation(id)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"message": err.Error(),
-		})
-		return
-	}
+    err = model.DeleteSecurityViolation(id)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{
+            "success": false,
+            "message": err.Error(),
+        })
+        return
+    }
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "Violation record deleted successfully",
-	})
+    c.JSON(http.StatusOK, gin.H{
+        "success": true,
+        "message": "Violation record deleted successfully",
+    })
 }
 
 // GetSecurityUsers returns users with violations
 func GetSecurityUsers(c *gin.Context) {
-	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
-	bannedOnly := c.Query("banned_only") == "true"
+    page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+    pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
+    bannedOnly := c.Query("banned_only") == "true"
 
-	offset := (page - 1) * pageSize
+    offset := (page - 1) * pageSize
 
-	userSecList, total, err := model.GetAllUserSecurity(offset, pageSize, bannedOnly)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"message": err.Error(),
-		})
-		return
-	}
+    userSecList, total, err := model.GetAllUserSecurity(offset, pageSize, bannedOnly)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{
+            "success": false,
+            "message": err.Error(),
+        })
+        return
+    }
 
-	// Enrich with user info
-	var enrichedUsers []map[string]interface{}
-	for _, userSec := range userSecList {
-		user, err := model.GetUserById(userSec.UserId, false)
-		if err != nil {
-			continue
-		}
+    // Enrich with user info
+    var enrichedUsers []map[string]interface{}
+    for _, userSec := range userSecList {
+        user, err := model.GetUserById(userSec.UserId, false)
+        if err != nil {
+            continue
+        }
 
-		enrichedUsers = append(enrichedUsers, map[string]interface{}{
-			"user_id":           userSec.UserId,
-			"username":          user.Username,
-			"display_name":      user.DisplayName,
-			"is_banned":         userSec.IsBanned,
-			"redirect_model":    userSec.RedirectModel,
-			"violation_count":   userSec.ViolationCount,
-			"last_violation_at": userSec.LastViolationAt,
-		})
-	}
+        enrichedUsers = append(enrichedUsers, map[string]interface{}{
+            "user_id":           userSec.UserId,
+            "username":          user.Username,
+            "display_name":      user.DisplayName,
+            "is_banned":         userSec.IsBanned,
+            "redirect_model":    userSec.RedirectModel,
+            "violation_count":   userSec.ViolationCount,
+            "last_violation_at": userSec.LastViolationAt,
+        })
+    }
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"data": gin.H{
-			"users":     enrichedUsers,
-			"total":     total,
-			"page":      page,
-			"page_size": pageSize,
-		},
-	})
+    c.JSON(http.StatusOK, gin.H{
+        "success": true,
+        "data": gin.H{
+            "users":     enrichedUsers,
+            "total":     total,
+            "page":      page,
+            "page_size": pageSize,
+        },
+    })
 }
 
 // BanUser bans a user
 func BanUser(c *gin.Context) {
-	userId, err := strconv.Atoi(c.Param("userId"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "Invalid user ID",
-		})
-		return
-	}
+    userId, err := strconv.Atoi(c.Param("userId"))
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{
+            "success": false,
+            "message": "Invalid user ID",
+        })
+        return
+    }
 
-	err = service.BanUser(userId)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"message": err.Error(),
-		})
-		return
-	}
+    err = service.BanUser(userId)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{
+            "success": false,
+            "message": err.Error(),
+        })
+        return
+    }
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "User banned successfully",
-	})
+    c.JSON(http.StatusOK, gin.H{
+        "success": true,
+        "message": "User banned successfully",
+    })
 }
 
 // UnbanUser unbans a user
 func UnbanUser(c *gin.Context) {
-	userId, err := strconv.Atoi(c.Param("userId"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "Invalid user ID",
-		})
-		return
-	}
+    userId, err := strconv.Atoi(c.Param("userId"))
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{
+            "success": false,
+            "message": "Invalid user ID",
+        })
+        return
+    }
 
-	err = service.UnbanUser(userId)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"message": err.Error(),
-		})
-		return
-	}
+    err = service.UnbanUser(userId)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{
+            "success": false,
+            "message": err.Error(),
+        })
+        return
+    }
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "User unbanned successfully",
-	})
+    c.JSON(http.StatusOK, gin.H{
+        "success": true,
+        "message": "User unbanned successfully",
+    })
 }
 
 // SetUserRedirect sets redirect model for a user
 func SetUserRedirect(c *gin.Context) {
-	userId, err := strconv.Atoi(c.Param("userId"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "Invalid user ID",
-		})
-		return
-	}
+    userId, err := strconv.Atoi(c.Param("userId"))
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{
+            "success": false,
+            "message": "Invalid user ID",
+        })
+        return
+    }
 
-	var req struct {
-		Model string `json:"model" binding:"required"`
-	}
+    var req struct {
+        Model string `json:"model" binding:"required"`
+    }
 
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "Invalid request body",
-		})
-		return
-	}
+    if err := c.ShouldBindJSON(&req); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{
+            "success": false,
+            "message": "Invalid request body",
+        })
+        return
+    }
 
-	err = service.SetUserRedirect(userId, req.Model)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"message": err.Error(),
-		})
-		return
-	}
+    err = service.SetUserRedirect(userId, req.Model)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{
+            "success": false,
+            "message": err.Error(),
+        })
+        return
+    }
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "User redirect set successfully",
-	})
+    c.JSON(http.StatusOK, gin.H{
+        "success": true,
+        "message": "User redirect set successfully",
+    })
 }
 
 // ClearUserRedirect removes redirect for a user
 func ClearUserRedirect(c *gin.Context) {
-	userId, err := strconv.Atoi(c.Param("userId"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "Invalid user ID",
-		})
-		return
-	}
+    userId, err := strconv.Atoi(c.Param("userId"))
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{
+            "success": false,
+            "message": "Invalid user ID",
+        })
+        return
+    }
 
-	err = service.ClearUserRedirect(userId)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"message": err.Error(),
-		})
-		return
-	}
+    err = service.ClearUserRedirect(userId)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{
+            "success": false,
+            "message": err.Error(),
+        })
+        return
+    }
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "User redirect cleared successfully",
-	})
+    c.JSON(http.StatusOK, gin.H{
+        "success": true,
+        "message": "User redirect cleared successfully",
+    })
 }
 
 // GetSecuritySettings returns security settings
 func GetSecuritySettings(c *gin.Context) {
-	settings := service.GetSecuritySettings()
+    settings := service.GetSecuritySettings()
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"data":    settings,
-	})
+    c.JSON(http.StatusOK, gin.H{
+        "success": true,
+        "data":    settings,
+    })
 }
 
 // UpdateSecuritySettings updates security settings
 func UpdateSecuritySettings(c *gin.Context) {
-	var settings map[string]interface{}
+    var settings map[string]interface{}
 
-	if err := c.ShouldBindJSON(&settings); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "Invalid request body",
-		})
-		return
-	}
+    if err := c.ShouldBindJSON(&settings); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{
+            "success": false,
+            "message": "Invalid request body",
+        })
+        return
+    }
 
-	err := service.UpdateSecuritySettings(settings)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"message": err.Error(),
-		})
-		return
-	}
+    err := service.UpdateSecuritySettings(settings)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{
+            "success": false,
+            "message": err.Error(),
+        })
+        return
+    }
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "Settings updated successfully",
-	})
+    c.JSON(http.StatusOK, gin.H{
+        "success": true,
+        "message": "Settings updated successfully",
+    })
+}
+
+// GetDeviceClusters returns device fingerprint clusters
+func GetDeviceClusters(c *gin.Context) {
+    page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+    pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
+    blockedStr := c.Query("blocked")
+
+    offset := (page - 1) * pageSize
+
+    var blocked *bool
+    if blockedStr == "true" {
+        b := true
+        blocked = &b
+    } else if blockedStr == "false" {
+        b := false
+        blocked = &b
+    }
+
+    devices, total, err := model.GetDeviceClusters(offset, pageSize, blocked)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{
+            "success": false,
+            "message": err.Error(),
+        })
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{
+        "success": true,
+        "data": gin.H{
+            "devices":   devices,
+            "total":     total,
+            "page":      page,
+            "page_size": pageSize,
+        },
+    })
+}
+
+// GetIPClusters returns IP cluster data
+func GetIPClusters(c *gin.Context) {
+    page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+    pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
+    blockedStr := c.Query("blocked")
+    minRiskScore, _ := strconv.Atoi(c.DefaultQuery("min_risk_score", "0"))
+
+    offset := (page - 1) * pageSize
+
+    var blocked *bool
+    if blockedStr == "true" {
+        b := true
+        blocked = &b
+    } else if blockedStr == "false" {
+        b := false
+        blocked = &b
+    }
+
+    clusters, total, err := model.GetIPClusters(offset, pageSize, blocked, minRiskScore)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{
+            "success": false,
+            "message": err.Error(),
+        })
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{
+        "success": true,
+        "data": gin.H{
+            "clusters":  clusters,
+            "total":     total,
+            "page":      page,
+            "page_size": pageSize,
+        },
+    })
+}
+
+// GetSecurityAnomalies returns security anomalies with filters
+func GetSecurityAnomalies(c *gin.Context) {
+    page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+    pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
+    userId, _ := strconv.Atoi(c.Query("user_id"))
+    severity := c.Query("severity")
+    anomalyType := c.Query("anomaly_type")
+    status := c.Query("status")
+    startTimeStr := c.Query("start_time")
+    endTimeStr := c.Query("end_time")
+
+    offset := (page - 1) * pageSize
+
+    filters := make(map[string]interface{})
+    if userId > 0 {
+        filters["user_id"] = userId
+    }
+    if severity != "" {
+        filters["severity"] = severity
+    }
+    if anomalyType != "" {
+        filters["anomaly_type"] = anomalyType
+    }
+    if status != "" {
+        filters["status"] = status
+    }
+
+    if startTimeStr != "" {
+        t, err := time.Parse(time.RFC3339, startTimeStr)
+        if err == nil {
+            filters["start_time"] = &t
+        }
+    }
+    if endTimeStr != "" {
+        t, err := time.Parse(time.RFC3339, endTimeStr)
+        if err == nil {
+            filters["end_time"] = &t
+        }
+    }
+
+    anomalies, total, err := model.GetSecurityAnomalies(offset, pageSize, filters)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{
+            "success": false,
+            "message": err.Error(),
+        })
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{
+        "success": true,
+        "data": gin.H{
+            "anomalies": anomalies,
+            "total":     total,
+            "page":      page,
+            "page_size": pageSize,
+        },
+    })
+}
+
+// ApproveAnomaly approves a security anomaly
+func ApproveAnomaly(c *gin.Context) {
+    anomalyId, err := strconv.Atoi(c.Param("id"))
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{
+            "success": false,
+            "message": "Invalid anomaly ID",
+        })
+        return
+    }
+
+    var req struct {
+        Rationale string `json:"rationale"`
+    }
+    if err := c.ShouldBindJSON(&req); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{
+            "success": false,
+            "message": "Invalid request body",
+        })
+        return
+    }
+
+    userId := c.GetInt("id")
+    err = service.ApproveAnomaly(anomalyId, userId, req.Rationale)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{
+            "success": false,
+            "message": err.Error(),
+        })
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{
+        "success": true,
+        "message": "Anomaly approved successfully",
+    })
+}
+
+// IgnoreAnomaly ignores a security anomaly
+func IgnoreAnomaly(c *gin.Context) {
+    anomalyId, err := strconv.Atoi(c.Param("id"))
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{
+            "success": false,
+            "message": "Invalid anomaly ID",
+        })
+        return
+    }
+
+    var req struct {
+        Rationale string `json:"rationale" binding:"required"`
+    }
+    if err := c.ShouldBindJSON(&req); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{
+            "success": false,
+            "message": "Invalid request body",
+        })
+        return
+    }
+
+    userId := c.GetInt("id")
+    err = service.IgnoreAnomaly(anomalyId, userId, req.Rationale)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{
+            "success": false,
+            "message": err.Error(),
+        })
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{
+        "success": true,
+        "message": "Anomaly ignored successfully",
+    })
 }
