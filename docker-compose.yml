@@ -2,7 +2,8 @@
 # 
 # Quick Start:
 #   1. docker-compose up -d
-#   2. Access at http://localhost:3000
+#   2. Access main API at http://localhost:3000
+#   3. Access Heimdall Gateway at https://localhost:8443
 #
 # Using MySQL instead of PostgreSQL:
 #   1. Comment out the postgres service and SQL_DSN line 15
@@ -45,6 +46,58 @@ services:
 #      - mysql  # Uncomment if using MySQL
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O - http://localhost:3000/api/status | grep -o '\"success\":\\s*true' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Heimdall Gateway Service
+  heimdall:
+    image: calciumion/new-api:latest
+    container_name: heimdall-gateway
+    restart: always
+    command: ["./heimdall"]
+    ports:
+      - "8443:8443"
+      - "80:80"  # Required for ACME challenges
+    volumes:
+      - ./data:/data
+      - ./logs:/app/logs
+      # Uncomment for TLS certificates (manual mode)
+      # - ./certs:/certs:ro
+    environment:
+      # Basic configuration
+      - HEIMDALL_LISTEN_ADDR=:8443
+      - HEIMDALL_BACKEND_URL=http://new-api:3000
+      - HEIMDALL_LOG_LEVEL=info
+      
+      # TLS Configuration (choose one mode)
+      
+      # Mode 1: Manual TLS certificates (recommended for production)
+      - HEIMDALL_TLS_ENABLED=true
+      - HEIMDALL_TLS_CERT=/certs/heimdall.crt
+      - HEIMDALL_TLS_KEY=/certs/heimdall.key
+      
+      # Mode 2: ACME (Let's Encrypt) - uncomment to use instead of manual certificates
+      # - HEIMDALL_TLS_ENABLED=true
+      # - HEIMDALL_ACME_ENABLED=true
+      # - HEIMDALL_ACME_DOMAIN=api.example.com
+      # - HEIMDALL_ACME_EMAIL=admin@example.com
+      # - HEIMDALL_ACME_CACHE_DIR=/data/acme
+      
+      # Security settings
+      - HEIMDALL_CORS_ORIGINS=*
+      - HEIMDALL_RATE_LIMIT_ENABLED=false
+      - HEIMDALL_RATE_LIMIT_REQUESTS=100
+      - HEIMDALL_RATE_LIMIT_WINDOW_MINUTES=1
+      
+      # Optional authentication
+      # - HEIMDALL_API_KEY_HEADER=Authorization
+      # - HEIMDALL_API_KEY_VALUE=Bearer your-token
+      
+    depends_on:
+      - new-api
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-check-certificate -q -O - https://localhost:8443/health | grep -o '\"status\":\\s*\"healthy\"' || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
