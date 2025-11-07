@@ -35,6 +35,10 @@ func Start() context.CancelFunc {
         go startTicker(ctx, time.Hour, func() { _ = RunTTLCleanupOnce(context.Background()) })
     }
 
+    // Anomaly detection job
+    // Run every hour to analyze user behavior patterns
+    go startTicker(ctx, time.Hour, func() { _ = RunAnomalyDetectionOnce() })
+
     return cancel
 }
 
@@ -333,4 +337,13 @@ func isUniqueConstraintError(err error) bool {
     }
     msg := strings.ToLower(err.Error())
     return strings.Contains(msg, "unique") || strings.Contains(msg, "duplicate") || strings.Contains(msg, "constraint failed")
+}
+
+// RunAnomalyDetectionOnce runs anomaly detection analysis for all active users
+func RunAnomalyDetectionOnce() error {
+    common.SysLog("Starting scheduled anomaly detection analysis")
+    detector := service.NewAnomalyDetectorService()
+    detector.RunPeriodicAnalysis()
+    common.SysLog("Completed scheduled anomaly detection analysis")
+    return nil
 }

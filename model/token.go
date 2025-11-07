@@ -28,9 +28,10 @@ type Token struct {
     UsedQuota          int            `json:"used_quota" gorm:"default:0"` // used quota
     Group              string         `json:"group" gorm:"default:''"`
     // BillingMode is a per-token override for billing strategy (balance | plan | auto)
-    BillingMode        string         `json:"billing_mode" gorm:"size:16;default:'balance'"`
-    PlanAssignmentId   *int           `json:"plan_assignment_id" gorm:"index"`
-    DeletedAt          gorm.DeletedAt `gorm:"index"`
+    BillingMode                string         `json:"billing_mode" gorm:"size:16;default:'balance'"`
+    PlanAssignmentId           *int           `json:"plan_assignment_id" gorm:"index"`
+    ConversationLoggingEnabled bool           `json:"conversation_logging_enabled" gorm:"type:boolean;default:false"` // Enable encrypted conversation logging
+    DeletedAt                  gorm.DeletedAt `gorm:"index"`
 }
 
 func (token *Token) Clean() {
@@ -211,7 +212,7 @@ func (token *Token) Update() (err error) {
         }
     }()
     err = DB.Model(token).Select("name", "status", "expired_time", "remain_quota", "unlimited_quota",
-        "model_limits_enabled", "model_limits", "allow_ips", "group", "billing_mode", "plan_assignment_id").Updates(token).Error
+        "model_limits_enabled", "model_limits", "allow_ips", "group", "billing_mode", "plan_assignment_id", "conversation_logging_enabled").Updates(token).Error
     return err
 }
 

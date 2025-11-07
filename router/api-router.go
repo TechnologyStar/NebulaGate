@@ -392,5 +392,40 @@ func SetApiRouter(router *gin.Engine) {
                 ticketAdminRoute.PUT("/:id/reply", controller.ReplyTicket)
             }
         }
+
+        // End-to-End Encryption Routes
+        encryptionRoute := apiRouter.Group("/encryption")
+        encryptionRoute.Use(middleware.UserAuth())
+        {
+            encryptionRoute.POST("/generate-key", controller.GenerateEncryptionKey)
+            encryptionRoute.POST("/enable", controller.EnableEncryption)
+            encryptionRoute.GET("/status", controller.GetEncryptionStatus)
+            encryptionRoute.POST("/conversation-log", controller.CreateConversationLog)
+            encryptionRoute.GET("/conversation-logs", controller.GetConversationLogs)
+            encryptionRoute.DELETE("/conversation-log/:id", controller.DeleteConversationLog)
+        }
+
+        // Heimdall Gateway Log Receiver
+        apiRouter.POST("/heimdall/log", controller.HeimdallLogReceiver)
+
+        // Anomaly Detection Routes
+        anomalyRoute := apiRouter.Group("/anomaly")
+        anomalyRoute.Use(middleware.UserAuth())
+        {
+            anomalyRoute.GET("/detections", controller.GetAnomalyDetections)
+            anomalyRoute.GET("/detections/:id", controller.GetAnomalyDetectionById)
+            anomalyRoute.GET("/statistics", controller.GetAnomalyStatistics)
+            
+            // Admin-only routes
+            anomalyAdminRoute := anomalyRoute.Group("/")
+            anomalyAdminRoute.Use(middleware.AdminAuth())
+            {
+                anomalyAdminRoute.PUT("/detections/:id/status", controller.UpdateAnomalyDetectionStatus)
+                anomalyAdminRoute.PUT("/detections/:id/action", controller.UpdateAnomalyDetectionAction)
+                anomalyAdminRoute.GET("/device-aggregation", controller.GetDeviceAggregation)
+                anomalyAdminRoute.GET("/ip-aggregation", controller.GetIPAggregation)
+                anomalyAdminRoute.POST("/trigger/:user_id", controller.TriggerAnomalyDetection)
+            }
+        }
     }
 }
