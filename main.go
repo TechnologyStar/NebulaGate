@@ -56,6 +56,7 @@ func main() {
     }
 
     defer func() {
+        middleware.StopHeimdallTelemetry()
         err := model.CloseDB()
         if err != nil {
             common.FatalLog("failed to close database: " + err.Error())
@@ -280,6 +281,9 @@ func InitResources() error {
     // Bootstrap background scheduler after DB and options are ready
     // Jobs respect feature flags to avoid overhead when disabled
     _ = bootstrapScheduler()
+    
+    // Initialize Heimdall telemetry system
+    middleware.InitHeimdallTelemetry()
 
     return nil
 }
