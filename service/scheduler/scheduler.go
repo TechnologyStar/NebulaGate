@@ -43,8 +43,19 @@ func Start() context.CancelFunc {
 }
 
 func startTicker(ctx context.Context, interval time.Duration, fn func()) {
-    // Fire once on start to ensure progress after boot
-    fn()
+    // Delay initial execution to allow database to fully initialize
+    time.Sleep(5 * time.Second)
+    
+    // Fire once on start to ensure progress after boot, with panic recovery
+    func() {
+        defer func() {
+            if r := recover(); r != nil {
+                common.SysLog(fmt.Sprintf("scheduler task panic on initial run: %v", r))
+            }
+        }()
+        fn()
+    }()
+    
     ticker := time.NewTicker(interval)
     defer ticker.Stop()
     for {
@@ -52,7 +63,15 @@ func startTicker(ctx context.Context, interval time.Duration, fn func()) {
         case <-ctx.Done():
             return
         case <-ticker.C:
-            fn()
+            // Execute with panic recovery
+            func() {
+                defer func() {
+                    if r := recover(); r != nil {
+                        common.SysLog(fmt.Sprintf("scheduler task panic: %v", r))
+                    }
+                }()
+                fn()
+            }()
         }
     }
 }

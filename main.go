@@ -71,19 +71,31 @@ func main() {
         common.SysLog(fmt.Sprintf("sync frequency: %d seconds", common.SyncFrequency))
 
         // Add panic recovery and retry for InitChannelCache
+        initSuccess := false
         func() {
             defer func() {
                 if r := recover(); r != nil {
-                    common.SysLog(fmt.Sprintf("InitChannelCache panic: %v, retrying once", r))
-                    // Retry once
-                    _, _, fixErr := model.FixAbility()
+                    common.SysLog(fmt.Sprintf("InitChannelCache panic: %v, attempting to fix abilities", r))
+                    // Retry once by fixing abilities
+                    successCount, failCount, fixErr := model.FixAbility()
                     if fixErr != nil {
-                        common.FatalLog(fmt.Sprintf("InitChannelCache failed: %s", fixErr.Error()))
+                        common.FatalLog(fmt.Sprintf("InitChannelCache failed and FixAbility also failed: %s", fixErr.Error()))
+                        return
                     }
+                    common.SysLog(fmt.Sprintf("FixAbility completed: %d success, %d failed", successCount, failCount))
+                    // Try to initialize cache again after fixing
+                    model.InitChannelCache()
+                    initSuccess = true
                 }
             }()
             model.InitChannelCache()
+            initSuccess = true
         }()
+
+        if !initSuccess {
+            common.FatalLog("failed to initialize channel cache")
+            return
+        }
 
         go model.SyncChannelCache(common.SyncFrequency)
     }
