@@ -177,79 +177,102 @@ func chooseDB(envName string, isLog bool) (*gorm.DB, error) {
 
 func InitDB() (err error) {
     db, err := chooseDB("SQL_DSN", false)
-    if err == nil {
-        if common.DebugEnabled {
-            db = db.Debug()
-        }
-        DB = db
-        // MySQL charset/collation startup check: ensure Chinese-capable charset
-        if common.UsingMySQL {
-            if err := checkMySQLChineseSupport(DB); err != nil {
-                panic(err)
-            }
-        }
-        sqlDB, err := DB.DB()
-        if err != nil {
-            return err
-        }
-        sqlDB.SetMaxIdleConns(common.GetEnvOrDefault("SQL_MAX_IDLE_CONNS", 100))
-        sqlDB.SetMaxOpenConns(common.GetEnvOrDefault("SQL_MAX_OPEN_CONNS", 1000))
-        sqlDB.SetConnMaxLifetime(time.Second * time.Duration(common.GetEnvOrDefault("SQL_MAX_LIFETIME", 60)))
-
-        if !common.IsMasterNode {
-            return nil
-        }
-        if common.UsingMySQL {
-            //_, _ = sqlDB.Exec("ALTER TABLE channels MODIFY model_mapping TEXT;") // TODO: delete this line when most users have upgraded
-        }
-        common.SysLog("database migration started")
-        if err = migrateDB(); err != nil {
-            return err
-        }
-        if err = modelmigrations.Run(DB); err != nil {
-            return err
-        }
-        return nil
-    } else {
-        common.FatalLog(err)
+    if err != nil {
+        common.SysLog(fmt.Sprintf("failed to connect to database: %v", err))
+        return err
     }
-    return err
+    
+    if common.DebugEnabled {
+        db = db.Debug()
+    }
+    DB = db
+    
+    // Test database connection
+    sqlDB, testErr := DB.DB()
+    if testErr != nil {
+        common.SysLog(fmt.Sprintf("failed to get database instance: %v", testErr))
+        return testErr
+    }
+    if pingErr := sqlDB.Ping(); pingErr != nil {
+        common.SysLog(fmt.Sprintf("failed to ping database: %v", pingErr))
+        return pingErr
+    }
+    
+    common.SysLog("database connection established successfully")
+    
+    // MySQL charset/collation startup check: ensure Chinese-capable charset
+    if common.UsingMySQL {
+        if err := checkMySQLChineseSupport(DB); err != nil {
+            common.SysLog(fmt.Sprintf("MySQL charset check failed: %v", err))
+            return fmt.Errorf("MySQL charset check failed: %w", err)
+        }
+    }
+    
+    sqlDB.SetMaxIdleConns(common.GetEnvOrDefault("SQL_MAX_IDLE_CONNS", 100))
+    sqlDB.SetMaxOpenConns(common.GetEnvOrDefault("SQL_MAX_OPEN_CONNS", 1000))
+    sqlDB.SetConnMaxLifetime(time.Second * time.Duration(common.GetEnvOrDefault("SQL_MAX_LIFETIME", 60)))
+
+    if !common.IsMasterNode {
+        return nil
+    }
+    
+    common.SysLog("database migration started")
+    if err = migrateDB(); err != nil {
+        return err
+    }
+    if err = modelmigrations.Run(DB); err != nil {
+        return err
+    }
+    return nil
 }
 
 func InitLogDB() (err error) {
     if os.Getenv("LOG_SQL_DSN") == "" {
         LOG_DB = DB
-        return
+        return nil
     }
     db, err := chooseDB("LOG_SQL_DSN", true)
-    if err == nil {
-        if common.DebugEnabled {
-            db = db.Debug()
-        }
-        LOG_DB = db
-        // If log DB is MySQL, also ensure Chinese-capable charset
-        if common.LogSqlType == common.DatabaseTypeMySQL {
-            if err := checkMySQLChineseSupport(LOG_DB); err != nil {
-                panic(err)
-            }
-        }
-        sqlDB, err := LOG_DB.DB()
-        if err != nil {
-            return err
-        }
-        sqlDB.SetMaxIdleConns(common.GetEnvOrDefault("SQL_MAX_IDLE_CONNS", 100))
-        sqlDB.SetMaxOpenConns(common.GetEnvOrDefault("SQL_MAX_OPEN_CONNS", 1000))
-        sqlDB.SetConnMaxLifetime(time.Second * time.Duration(common.GetEnvOrDefault("SQL_MAX_LIFETIME", 60)))
-
-        if !common.IsMasterNode {
-            return nil
-        }
-        common.SysLog("database migration started")
-        err = migrateLOGDB()
+    if err != nil {
+        common.SysLog(fmt.Sprintf("failed to connect to log database: %v", err))
         return err
-    } else {
-        common.FatalLog(err)
     }
+    
+    if common.DebugEnabled {
+        db = db.Debug()
+    }
+    LOG_DB = db
+    
+    // Test log database connection
+    sqlDB, testErr := LOG_DB.DB()
+    if testErr != nil {
+        common.SysLog(fmt.Sprintf("failed to get log database instance: %v", testErr))
+        return testErr
+    }
+    if pingErr := sqlDB.Ping(); pingErr != nil {
+        common.SysLog(fmt.Sprintf("failed to ping log database: %v", pingErr))
+        return pingErr
+    }
+    
+    common.SysLog("log database connection established successfully")
+    
+    // If log DB is MySQL, also ensure Chinese-capable charset
+    if common.LogSqlType == common.DatabaseTypeMySQL {
+        if err := checkMySQLChineseSupport(LOG_DB); err != nil {
+            common.SysLog(fmt.Sprintf("Log DB MySQL charset check failed: %v", err))
+            return fmt.Errorf("Log DB MySQL charset check failed: %w", err)
+        }
+    }
+    
+    sqlDB.SetMaxIdleConns(common.GetEnvOrDefault("SQL_MAX_IDLE_CONNS", 100))
+    sqlDB.SetMaxOpenConns(common.GetEnvOrDefault("SQL_MAX_OPEN_CONNS", 1000))
+    sqlDB.SetConnMaxLifetime(time.Second * time.Duration(common.GetEnvOrDefault("SQL_MAX_LIFETIME", 60)))
+
+    if !common.IsMasterNode {
+        return nil
+    }
+    
+    common.SysLog("log database migration started")
+    err = migrateLOGDB()
     return err
 }
 
