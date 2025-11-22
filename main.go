@@ -39,7 +39,16 @@ var buildFS embed.FS
 var indexPage []byte
 
 func main() {
+    defer func() {
+        if r := recover(); r != nil {
+            log.Printf("[FATAL PANIC] Application crashed during startup: %v", r)
+            os.Exit(1)
+        }
+    }()
+    
     startTime := time.Now()
+    
+    common.SysLog("=== Starting NebulaGate initialization ===")
 
     err := InitResources()
     if err != nil {
@@ -47,7 +56,7 @@ func main() {
         return
     }
 
-    common.SysLog("NebulaGate " + common.Version + " started")
+    common.SysLog("=== NebulaGate " + common.Version + " initialization completed ===")
     if os.Getenv("GIN_MODE") != "debug" {
         gin.SetMode(gin.ReleaseMode)
     }
@@ -72,32 +81,37 @@ func main() {
 
         // Add panic recovery and retry for InitChannelCache
         initSuccess := false
-        func() {
-            defer func() {
-                if r := recover(); r != nil {
-                    common.SysLog(fmt.Sprintf("InitChannelCache panic: %v, attempting to fix abilities", r))
-                    // Retry once by fixing abilities
-                    successCount, failCount, fixErr := model.FixAbility()
-                    if fixErr != nil {
-                        common.FatalLog(fmt.Sprintf("InitChannelCache failed and FixAbility also failed: %s", fixErr.Error()))
-                        return
+        maxRetries := 2
+        
+        for attempt := 0; attempt < maxRetries && !initSuccess; attempt++ {
+            func() {
+                defer func() {
+                    if r := recover(); r != nil {
+                        common.SysLog(fmt.Sprintf("InitChannelCache panic on attempt %d: %v", attempt+1, r))
+                        if attempt == 0 {
+                            // First failure: try to fix abilities
+                            common.SysLog("attempting to fix abilities...")
+                            successCount, failCount, fixErr := model.FixAbility()
+                            if fixErr != nil {
+                                common.SysLog(fmt.Sprintf("FixAbility failed: %s", fixErr.Error()))
+                            } else {
+                                common.SysLog(fmt.Sprintf("FixAbility completed: %d success, %d failed", successCount, failCount))
+                            }
+                        }
                     }
-                    common.SysLog(fmt.Sprintf("FixAbility completed: %d success, %d failed", successCount, failCount))
-                    // Try to initialize cache again after fixing
-                    model.InitChannelCache()
-                    initSuccess = true
-                }
+                }()
+                model.InitChannelCache()
+                initSuccess = true
+                common.SysLog("channel cache initialized successfully")
             }()
-            model.InitChannelCache()
-            initSuccess = true
-        }()
-
-        if !initSuccess {
-            common.FatalLog("failed to initialize channel cache")
-            return
         }
 
-        go model.SyncChannelCache(common.SyncFrequency)
+        if !initSuccess {
+            common.SysLog("WARNING: failed to initialize channel cache after multiple attempts, continuing without cache")
+            common.MemoryCacheEnabled = false
+        } else {
+            go model.SyncChannelCache(common.SyncFrequency)
+        }
     }
 
     // 热更新配置
@@ -127,9 +141,10 @@ func main() {
     if os.Getenv("CHANNEL_UPDATE_FREQUENCY") != "" {
         frequency, err := strconv.Atoi(os.Getenv("CHANNEL_UPDATE_FREQUENCY"))
         if err != nil {
-            common.FatalLog("failed to parse CHANNEL_UPDATE_FREQUENCY: " + err.Error())
+            common.SysLog("WARNING: failed to parse CHANNEL_UPDATE_FREQUENCY: " + err.Error() + ", skipping automatic channel updates")
+        } else {
+            go controller.AutomaticallyUpdateChannels(frequency)
         }
-        go controller.AutomaticallyUpdateChannels(frequency)
     }
 
     go controller.AutomaticallyTestChannels()
@@ -241,8 +256,7 @@ func InjectGoogleAnalytics() {
 }
 
 func InitResources() error {
-    // Initialize resources here if needed
-    // This is a placeholder function for future resource initialization
+    common.SysLog("Step 1/10: Loading environment variables...")
     err := godotenv.Load(".env")
     if err != nil {
         if common.DebugEnabled {
@@ -250,49 +264,52 @@ func InitResources() error {
         }
     }
 
-    // 加载环境变量
+    common.SysLog("Step 2/10: Initializing environment...")
     common.InitEnv()
 
+    common.SysLog("Step 3/10: Setting up logger...")
     logger.SetupLogger()
 
-    // Initialize model settings
+    common.SysLog("Step 4/10: Initializing model settings...")
     ratio_setting.InitRatioSettings()
 
+    common.SysLog("Step 5/10: Initializing HTTP client...")
     service.InitHttpClient()
 
+    common.SysLog("Step 6/10: Initializing token encoders...")
     service.InitTokenEncoders()
 
-    // Initialize SQL Database
+    common.SysLog("Step 7/10: Initializing SQL database...")
     err = model.InitDB()
     if err != nil {
-        common.FatalLog("failed to initialize database: " + err.Error())
+        common.SysLog("ERROR: failed to initialize database: " + err.Error())
         return err
     }
 
+    common.SysLog("Step 8/10: Checking setup status...")
     model.CheckSetup()
 
-    // Initialize options, should after model.InitDB()
+    common.SysLog("Step 9/10: Initializing option map and pricing...")
     model.InitOptionMap()
-
-    // 初始化模型
     model.GetPricing()
 
-    // Initialize SQL Database
+    common.SysLog("Step 10/10: Initializing log database and Redis...")
     err = model.InitLogDB()
     if err != nil {
+        common.SysLog("ERROR: failed to initialize log database: " + err.Error())
         return err
     }
 
-    // Initialize Redis
     err = common.InitRedisClient()
     if err != nil {
+        common.SysLog("ERROR: failed to initialize Redis: " + err.Error())
         return err
     }
 
-    // Bootstrap background scheduler after DB and options are ready
-    // Jobs respect feature flags to avoid overhead when disabled
+    common.SysLog("Bootstrapping background scheduler...")
     _ = bootstrapScheduler()
 
+    common.SysLog("Resource initialization completed successfully")
     return nil
 }
 

@@ -67,7 +67,12 @@ func InitChannelCache() {
     for group, model2channels := range newGroup2model2channels {
         for model, channels := range model2channels {
             sort.Slice(channels, func(i, j int) bool {
-                return newChannelId2channel[channels[i]].GetPriority() > newChannelId2channel[channels[j]].GetPriority()
+                channelI, okI := newChannelId2channel[channels[i]]
+                channelJ, okJ := newChannelId2channel[channels[j]]
+                if !okI || !okJ {
+                    return false
+                }
+                return channelI.GetPriority() > channelJ.GetPriority()
             })
             newGroup2model2channels[group][model] = channels
         }
